@@ -45,6 +45,11 @@ return [
             'driver'   => 'sanctum',
             'provider' => 'admins',
         ],
+
+        'company' => [
+            'driver'   => 'sanctum',
+            'provider' => 'company_registers',
+        ],
     ],
 
     /*
@@ -73,6 +78,11 @@ return [
         'admins' => [
             'driver' => 'eloquent',
             'model'  => App\Models\Admin::class,
+        ],
+
+        'company_registers' => [
+            'driver' => 'eloquent',
+            'model'  => App\Models\CompanyRegister::class,
         ],
     ],
 
