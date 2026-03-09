@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class CompanyResource extends JsonResource
 {
@@ -30,7 +31,10 @@ class CompanyResource extends JsonResource
             'state'               => $this->state,
             'country'             => $this->country,
             'postal_code'         => $this->postal_code,
-            'logo_path'           => $this->logo_path,
+            // Return full public URL for logo, or null if not set
+            'logo_path'           => $this->logo_path
+                                        ? Storage::disk('public')->url($this->logo_path)
+                                        : null,
             'is_active'           => $this->is_active,
             'created_at'          => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at'          => $this->updated_at?->format('Y-m-d H:i:s'),

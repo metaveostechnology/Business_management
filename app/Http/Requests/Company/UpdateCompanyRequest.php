@@ -53,7 +53,7 @@ class UpdateCompanyRequest extends FormRequest
             'state'               => ['nullable', 'string', 'max:120'],
             'country'             => ['nullable', 'string', 'max:120'],
             'postal_code'         => ['nullable', 'string', 'max:30'],
-            'logo_path'           => ['nullable', 'string', 'max:255'],
+            'logo'                => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
             'is_active'           => ['boolean'],
         ];
     }

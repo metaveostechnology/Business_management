@@ -1,6 +1,6 @@
 # Company Management API
 
-A **production-ready Company Management REST API** built on top of the existing **Admin Management API** using **Laravel 10 + Laravel Sanctum**.
+A **production-ready Company Management REST API** built on top of the **Admin Management API** using **Laravel 10 + Laravel Sanctum**.
 
 ---
 
@@ -15,6 +15,7 @@ A **production-ready Company Management REST API** built on top of the existing 
 | Architecture | Repository + Service Pattern |
 | Response Format | API Resources (JSON) |
 | Validation | Laravel FormRequest |
+| File Storage | Laravel Storage (public disk) |
 
 ---
 
@@ -25,6 +26,7 @@ composer install
 cp .env.example .env
 php artisan key:generate
 php artisan migrate
+php artisan storage:link
 php artisan serve
 ```
 
@@ -56,38 +58,17 @@ Authorization: Bearer {your_token}
 
 ### `POST /api/admin/login`
 
-Authenticate an admin and receive a Bearer token.
-
 | | |
 |---|---|
 | **Method** | `POST` |
 | **Auth** | None (public) |
+| **Content-Type** | `application/json` |
 
 **Request:**
 ```json
 {
     "login": "admin@example.com",
     "password": "password123"
-}
-```
-
-**Success Response (200):**
-```json
-{
-    "success": true,
-    "message": "Login successful.",
-    "data": {
-        "token": "1|abc123sanctumtoken",
-        "admin": { ... }
-    }
-}
-```
-
-**Error Response (401):**
-```json
-{
-    "success": false,
-    "message": "Invalid credentials or account is not active."
 }
 ```
 
@@ -99,12 +80,7 @@ Authenticate an admin and receive a Bearer token.
 
 ### `GET /api/companies`
 
-Get paginated list of all companies.
-
-| | |
-|---|---|
-| **Method** | `GET` |
-| **Auth** | Bearer Token required |
+Get paginated list of companies.
 
 **Query Parameters:**
 
@@ -114,128 +90,61 @@ Get paginated list of all companies.
 | `is_active` | int (0/1) | Filter by active status |
 | `per_page` | int | Results per page (default: 10) |
 
-**Examples:**
-```
-GET /api/companies
-GET /api/companies?search=infosys
-GET /api/companies?is_active=1
-GET /api/companies?search=info&is_active=1&per_page=5
-```
-
-**Success Response (200):**
-```json
-{
-    "success": true,
-    "message": "Companies retrieved successfully.",
-    "data": [
-        {
-            "slug": "infosys-ltd",
-            "code": "INFY",
-            "name": "Infosys Ltd",
-            "legal_name": "Infosys Limited",
-            "email": "info@infosys.com",
-            "phone": "9876543210",
-            "website": "https://infosys.com",
-            "currency_code": "INR",
-            "timezone": "Asia/Kolkata",
-            "city": "Bangalore",
-            "state": "Karnataka",
-            "country": "India",
-            "is_active": true,
-            "created_at": "2024-01-01 00:00:00",
-            "updated_at": "2024-01-01 00:00:00"
-        }
-    ],
-    "meta": {
-        "current_page": 1,
-        "per_page": 10,
-        "total": 25,
-        "last_page": 3
-    },
-    "links": { ... }
-}
-```
-
 ---
 
 ### `GET /api/companies/{slug}`
 
 Get a single company by slug.
 
-| | |
-|---|---|
-| **Method** | `GET` |
-| **Auth** | Bearer Token required |
-
-**Example:** `GET /api/companies/infosys-ltd`
-
-**Success Response (200):**
-```json
-{
-    "success": true,
-    "message": "Company retrieved successfully.",
-    "data": {
-        "slug": "infosys-ltd",
-        "code": "INFY",
-        "name": "Infosys Ltd",
-        ...
-    }
-}
-```
-
-**Error Response (404):**
-```json
-{
-    "success": false,
-    "message": "Company not found."
-}
-```
-
 ---
 
 ### `POST /api/companies`
 
-Create a new company. Slug is **auto-generated** from the name.
+Create a new company.
 
-| | |
-|---|---|
-| **Method** | `POST` |
-| **Auth** | Bearer Token required |
+> **Use `multipart/form-data`** to upload a logo. Slug is auto-generated from the name.
 
-**Request Body:**
-```json
-{
-    "name": "Infosys Ltd",
-    "code": "INFY",
-    "legal_name": "Infosys Limited",
-    "email": "info@infosys.com",
-    "phone": "9876543210",
-    "website": "https://infosys.com",
-    "tax_number": "GSTIN123456",
-    "registration_number": "REG123456",
-    "currency_code": "INR",
-    "timezone": "Asia/Kolkata",
-    "address_line1": "Electronics City",
-    "city": "Bangalore",
-    "state": "Karnataka",
-    "country": "India",
-    "postal_code": "560100",
-    "is_active": 1
-}
+**All Fields:**
+
+| Field | Type | Rules |
+|-------|------|-------|
+| `name` | string | **required**, max:150 |
+| `code` | string | **required**, max:50, unique |
+| `legal_name` | string | nullable, max:200 |
+| `email` | string | nullable, valid email, unique |
+| `phone` | string | nullable, **exactly 10 digits** |
+| `website` | string | nullable, valid URL |
+| `tax_number` | string | nullable, max:100 |
+| `registration_number` | string | nullable, max:100 |
+| `currency_code` | string | **required**, max:10 |
+| `timezone` | string | **required**, max:100 |
+| `address_line1` | string | nullable, max:255 |
+| `address_line2` | string | nullable, max:255 |
+| `city` | string | nullable, max:120 |
+| `state` | string | nullable, max:120 |
+| `country` | string | nullable, max:120 |
+| `postal_code` | string | nullable, max:30 |
+| `logo` | **file** | nullable, image (jpeg/png/jpg/gif/webp), max **2MB** |
+| `is_active` | boolean | nullable |
+
+**Logo Upload Notes:**
+- Field name: **`logo`** (not `logo_path`)
+- Accepted types: `jpeg`, `png`, `jpg`, `gif`, `webp`
+- Max size: **2MB (2048 KB)**
+- Stored at: `storage/app/public/logos/`
+- Response returns full public URL: `http://localhost:8000/storage/logos/filename.jpg`
+
+**Example Request (multipart/form-data):**
 ```
+POST /api/companies
+Content-Type: multipart/form-data
 
-**Validation Rules:**
-
-| Field | Rules |
-|-------|-------|
-| `name` | required, string, max:150 |
-| `code` | required, string, max:50, unique |
-| `email` | nullable, email, unique |
-| `phone` | nullable, **exactly 10 digits** |
-| `website` | nullable, url |
-| `currency_code` | required, string, max:10 |
-| `timezone` | required, string, max:100 |
-| `is_active` | boolean |
+name        = Infosys Ltd
+code        = INFY
+currency_code = INR
+timezone    = Asia/Kolkata
+logo        = [file: company_logo.png]
+```
 
 **Success Response (201):**
 ```json
@@ -244,6 +153,10 @@ Create a new company. Slug is **auto-generated** from the name.
     "message": "Company created successfully.",
     "data": {
         "slug": "infosys-ltd",
+        "code": "INFY",
+        "name": "Infosys Ltd",
+        "logo_path": "http://localhost:8000/storage/logos/abc123.png",
+        "is_active": true,
         ...
     }
 }
@@ -251,59 +164,46 @@ Create a new company. Slug is **auto-generated** from the name.
 
 ---
 
-### `PUT /api/companies/{slug}`
+### `POST /api/companies/{slug}` ← **Use this for logo upload in Postman**
+### `PUT  /api/companies/{slug}` ← JSON-only updates (no file upload)
 
 Update a company by slug.
 
-| | |
-|---|---|
-| **Method** | `PUT` |
-| **Auth** | Bearer Token required |
+> **Important:** HTTP `PUT` cannot carry file uploads in Postman/most clients.  
+> Use **`POST /api/companies/{slug}`** with `multipart/form-data` when uploading a new logo.
 
-**Request Body (all fields optional):**
-```json
-{
-    "name": "Infosys Technologies",
-    "city": "Pune",
-    "is_active": 0
-}
-```
-
-> If `name` is changed, the **slug is automatically regenerated** with uniqueness guarantee.
-
-**Success Response (200):**
-```json
-{
-    "success": true,
-    "message": "Company updated successfully.",
-    "data": { ... }
-}
-```
+**Behavior:**
+- If a new `logo` file is provided → **old logo is deleted** from storage, new one is saved
+- If `name` changes → **slug is regenerated** (with uniqueness suffix if needed)
 
 ---
 
 ### `DELETE /api/companies/{slug}`
 
-Delete a company by slug.
+Delete a company. The logo file is also **deleted from storage** automatically.
 
-| | |
-|---|---|
-| **Method** | `DELETE` |
-| **Auth** | Bearer Token required |
+---
 
-**Success Response (200):**
+## 📷 Logo URL in Response
+
+The `logo_path` field always returns a **full public URL**:
+
 ```json
 {
-    "success": true,
-    "message": "Company deleted successfully."
+    "logo_path": "http://localhost:8000/storage/logos/logos/abc123def456.png"
+}
+```
+
+If no logo is uploaded:
+```json
+{
+    "logo_path": null
 }
 ```
 
 ---
 
 ## 🔢 Slug Generation
-
-Slugs are auto-generated from the company name:
 
 | Name | Generated Slug |
 |------|----------------|
@@ -313,7 +213,7 @@ Slugs are auto-generated from the company name:
 
 ---
 
-## 📊 Error Response Format
+## 📊 Error Reference
 
 **Validation Error (422):**
 ```json
@@ -321,18 +221,21 @@ Slugs are auto-generated from the company name:
     "success": false,
     "message": "Validation error.",
     "errors": {
-        "phone": ["Phone number must be exactly 10 digits."],
-        "code": ["This company code is already in use."]
+        "phone":   ["Phone number must be exactly 10 digits."],
+        "logo":    ["The logo must be an image.", "The logo must not be greater than 2048 kilobytes."],
+        "website": ["Please provide a valid website URL."]
     }
 }
 ```
 
 **Unauthorized (401):**
 ```json
-{
-    "success": false,
-    "message": "Unauthenticated."
-}
+{ "success": false, "message": "Unauthenticated." }
+```
+
+**Not Found (404):**
+```json
+{ "success": false, "message": "Company not found." }
 ```
 
 ---
@@ -341,41 +244,27 @@ Slugs are auto-generated from the company name:
 
 ```
 app/
-├── Models/
-│   ├── Admin.php
-│   └── Company.php
-├── Http/Controllers/API/
-│   ├── AdminAuthController.php
-│   ├── AdminController.php
-│   └── CompanyController.php          ← new
-├── Http/Requests/
-│   ├── Admin/
-│   └── Company/
-│       ├── StoreCompanyRequest.php    ← new
-│       └── UpdateCompanyRequest.php   ← new
-├── Http/Resources/
-│   ├── AdminResource.php
-│   └── CompanyResource.php            ← new
-├── Repositories/
-│   ├── AdminRepository.php
-│   └── CompanyRepository.php          ← new
-├── Services/
-│   ├── AdminService.php
-│   └── CompanyService.php             ← new
-└── Traits/ApiResponseTrait.php
+├── Models/Company.php
+├── Http/Controllers/API/CompanyController.php
+├── Http/Requests/Company/
+│   ├── StoreCompanyRequest.php
+│   └── UpdateCompanyRequest.php
+├── Http/Resources/CompanyResource.php
+├── Repositories/CompanyRepository.php
+└── Services/CompanyService.php
 
-database/migrations/
-├── *_create_admins_table.php
-└── *_create_companies_table.php       ← new
+storage/app/public/logos/    ← uploaded logos stored here
+public/storage/              ← symlinked via php artisan storage:link
 ```
 
 ---
 
-## 📮 Postman Collection
+## 📮 Postman
 
-Import `company_postman_collection.json` from the project root.
+Import `company_postman_collection.json`.
 
-1. Open Postman → **Import** → select the file
-2. Set `base_url` = `http://localhost:8000/api`
-3. Run **Admin Login** — token auto-saved
-4. All company endpoints use `{{token}}` automatically
+For logo upload in Postman:
+1. Select request body type → **form-data**
+2. Add field `logo`, change type to **File**, browse and select image
+3. Set `Authorization: Bearer {{token}}`
+4. Send to `POST /api/companies` (create) or `POST /api/companies/{slug}` (update)

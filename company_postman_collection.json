@@ -1,218 +1,593 @@
 {
     "info": {
-        "name": "Company Management API",
-        "description": "Admin Authentication + Company Management REST API — Laravel 10 + Sanctum",
+        "name": "Company Management API — Full Field Test",
+        "description": "Tests all fields: id, slug, code, name, legal_name, email, phone, website, tax_number, registration_number, currency_code, timezone, address_line1, address_line2, city, state, country, postal_code, logo_path, is_active, created_at, updated_at",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "variable": [
         { "key": "base_url", "value": "http://127.0.0.1:8000/api", "type": "string" },
-        { "key": "token",    "value": "",                           "type": "string" }
+        { "key": "token",    "value": "",                           "type": "string" },
+        { "key": "company_slug", "value": "",                      "type": "string" }
     ],
     "item": [
         {
-            "name": "Auth",
-            "item": [
+            "name": "STEP 1 — Admin Login",
+            "event": [
                 {
-                    "name": "Admin Login",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "var json = pm.response.json();",
-                                    "if (json.success && json.data && json.data.token) {",
-                                    "    pm.collectionVariables.set('token', json.data.token);",
-                                    "    console.log('Token saved:', json.data.token);",
-                                    "}"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            { "key": "Accept",       "value": "application/json" },
-                            { "key": "Content-Type", "value": "application/json" }
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "var json = pm.response.json();",
+                            "pm.test('Login success', function() { pm.response.to.have.status(200); });",
+                            "if (json.success && json.data && json.data.token) {",
+                            "    pm.collectionVariables.set('token', json.data.token);",
+                            "    console.log('✅ Token saved:', json.data.token);",
+                            "}"
                         ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"login\": \"admin@example.com\",\n    \"password\": \"password123\"\n}"
-                        },
-                        "url": { "raw": "{{base_url}}/admin/login", "host": ["{{base_url}}"], "path": ["admin", "login"] }
-                    }
-                },
-                {
-                    "name": "Admin Logout",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            { "key": "Accept",         "value": "application/json" },
-                            { "key": "Authorization",  "value": "Bearer {{token}}" }
-                        ],
-                        "url": { "raw": "{{base_url}}/admin/logout", "host": ["{{base_url}}"], "path": ["admin", "logout"] }
+                        "type": "text/javascript"
                     }
                 }
-            ]
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept",       "value": "application/json" },
+                    { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"login\": \"admin@example.com\",\n    \"password\": \"password123\"\n}"
+                },
+                "url": { "raw": "{{base_url}}/admin/login", "host": ["{{base_url}}"], "path": ["admin", "login"] }
+            }
         },
         {
-            "name": "Companies",
-            "item": [
+            "name": "STEP 2 — Create Company (ALL FIELDS)",
+            "event": [
                 {
-                    "name": "List Companies",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            { "key": "Accept",        "value": "application/json" },
-                            { "key": "Authorization", "value": "Bearer {{token}}" }
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "var json = pm.response.json();",
+                            "pm.test('Status 201', function() { pm.response.to.have.status(201); });",
+                            "pm.test('success = true', function() { pm.expect(json.success).to.be.true; });",
+                            "",
+                            "// Save slug for later requests",
+                            "if (json.data && json.data.slug) {",
+                            "    pm.collectionVariables.set('company_slug', json.data.slug);",
+                            "    console.log('✅ Company slug saved:', json.data.slug);",
+                            "}",
+                            "",
+                            "// Assert ALL fields are present in response",
+                            "var fields = ['slug','code','name','legal_name','email','phone','website',",
+                            "    'tax_number','registration_number','currency_code','timezone',",
+                            "    'address_line1','address_line2','city','state','country',",
+                            "    'postal_code','logo_path','is_active','created_at','updated_at'];",
+                            "",
+                            "fields.forEach(function(field) {",
+                            "    pm.test('Field present: ' + field, function() {",
+                            "        pm.expect(json.data).to.have.property(field);",
+                            "    });",
+                            "});",
+                            "",
+                            "// Assert specific field values",
+                            "pm.test('slug auto-generated',          function() { pm.expect(json.data.slug).to.equal('infosys-ltd'); });",
+                            "pm.test('code = INFY',                  function() { pm.expect(json.data.code).to.equal('INFY'); });",
+                            "pm.test('name = Infosys Ltd',           function() { pm.expect(json.data.name).to.equal('Infosys Ltd'); });",
+                            "pm.test('legal_name correct',           function() { pm.expect(json.data.legal_name).to.equal('Infosys Limited'); });",
+                            "pm.test('email correct',                function() { pm.expect(json.data.email).to.equal('info@infosys.com'); });",
+                            "pm.test('phone = 9876543210',           function() { pm.expect(json.data.phone).to.equal('9876543210'); });",
+                            "pm.test('website correct',              function() { pm.expect(json.data.website).to.equal('https://infosys.com'); });",
+                            "pm.test('tax_number correct',           function() { pm.expect(json.data.tax_number).to.equal('GSTIN123456'); });",
+                            "pm.test('registration_number correct',  function() { pm.expect(json.data.registration_number).to.equal('REG123456'); });",
+                            "pm.test('currency_code = INR',          function() { pm.expect(json.data.currency_code).to.equal('INR'); });",
+                            "pm.test('timezone correct',             function() { pm.expect(json.data.timezone).to.equal('Asia/Kolkata'); });",
+                            "pm.test('address_line1 correct',        function() { pm.expect(json.data.address_line1).to.equal('Electronics City, Phase 1'); });",
+                            "pm.test('address_line2 correct',        function() { pm.expect(json.data.address_line2).to.equal('Near Wipro Gate'); });",
+                            "pm.test('city = Bangalore',             function() { pm.expect(json.data.city).to.equal('Bangalore'); });",
+                            "pm.test('state = Karnataka',            function() { pm.expect(json.data.state).to.equal('Karnataka'); });",
+                            "pm.test('country = India',              function() { pm.expect(json.data.country).to.equal('India'); });",
+                            "pm.test('postal_code = 560100',         function() { pm.expect(json.data.postal_code).to.equal('560100'); });",
+                            "pm.test('logo_path correct',            function() { pm.expect(json.data.logo_path).to.equal('logos/infosys.png'); });",
+                            "pm.test('is_active = true',             function() { pm.expect(json.data.is_active).to.be.true; });",
+                            "pm.test('created_at present',          function() { pm.expect(json.data.created_at).to.not.be.null; });",
+                            "pm.test('updated_at present',          function() { pm.expect(json.data.updated_at).to.not.be.null; });"
                         ],
-                        "url": {
-                            "raw": "{{base_url}}/companies",
-                            "host": ["{{base_url}}"],
-                            "path": ["companies"],
-                            "query": [
-                                { "key": "search",    "value": "",  "disabled": true },
-                                { "key": "is_active", "value": "1", "disabled": true },
-                                { "key": "per_page",  "value": "10","disabled": true }
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "Search Companies",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            { "key": "Accept",        "value": "application/json" },
-                            { "key": "Authorization", "value": "Bearer {{token}}" }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/companies?search=infosys",
-                            "host": ["{{base_url}}"],
-                            "path": ["companies"],
-                            "query": [
-                                { "key": "search", "value": "infosys" }
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "Filter by Active Status",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            { "key": "Accept",        "value": "application/json" },
-                            { "key": "Authorization", "value": "Bearer {{token}}" }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/companies?is_active=1",
-                            "host": ["{{base_url}}"],
-                            "path": ["companies"],
-                            "query": [
-                                { "key": "is_active", "value": "1" }
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "Get Company by Slug",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            { "key": "Accept",        "value": "application/json" },
-                            { "key": "Authorization", "value": "Bearer {{token}}" }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/companies/infosys-ltd",
-                            "host": ["{{base_url}}"],
-                            "path": ["companies", "infosys-ltd"]
-                        }
-                    }
-                },
-                {
-                    "name": "Create Company",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            { "key": "Accept",        "value": "application/json" },
-                            { "key": "Content-Type",  "value": "application/json" },
-                            { "key": "Authorization", "value": "Bearer {{token}}" }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"name\": \"Infosys Ltd\",\n    \"code\": \"INFY\",\n    \"legal_name\": \"Infosys Limited\",\n    \"email\": \"info@infosys.com\",\n    \"phone\": \"9876543210\",\n    \"website\": \"https://infosys.com\",\n    \"tax_number\": \"GSTIN123456\",\n    \"registration_number\": \"REG123456\",\n    \"currency_code\": \"INR\",\n    \"timezone\": \"Asia/Kolkata\",\n    \"address_line1\": \"Electronics City\",\n    \"city\": \"Bangalore\",\n    \"state\": \"Karnataka\",\n    \"country\": \"India\",\n    \"postal_code\": \"560100\",\n    \"is_active\": 1\n}"
-                        },
-                        "url": { "raw": "{{base_url}}/companies", "host": ["{{base_url}}"], "path": ["companies"] }
-                    }
-                },
-                {
-                    "name": "Update Company",
-                    "request": {
-                        "method": "PUT",
-                        "header": [
-                            { "key": "Accept",        "value": "application/json" },
-                            { "key": "Content-Type",  "value": "application/json" },
-                            { "key": "Authorization", "value": "Bearer {{token}}" }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"name\": \"Infosys Technologies\",\n    \"city\": \"Pune\",\n    \"is_active\": 1\n}"
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/companies/infosys-ltd",
-                            "host": ["{{base_url}}"],
-                            "path": ["companies", "infosys-ltd"]
-                        }
-                    }
-                },
-                {
-                    "name": "Delete Company",
-                    "request": {
-                        "method": "DELETE",
-                        "header": [
-                            { "key": "Accept",        "value": "application/json" },
-                            { "key": "Authorization", "value": "Bearer {{token}}" }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/companies/infosys-ltd",
-                            "host": ["{{base_url}}"],
-                            "path": ["companies", "infosys-ltd"]
-                        }
-                    }
-                },
-                {
-                    "name": "Create Company — Invalid Phone (422)",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            { "key": "Accept",        "value": "application/json" },
-                            { "key": "Content-Type",  "value": "application/json" },
-                            { "key": "Authorization", "value": "Bearer {{token}}" }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"name\": \"Test Corp\",\n    \"code\": \"TSTCORP\",\n    \"currency_code\": \"INR\",\n    \"timezone\": \"Asia/Kolkata\",\n    \"phone\": \"123\"\n}"
-                        },
-                        "url": { "raw": "{{base_url}}/companies", "host": ["{{base_url}}"], "path": ["companies"] }
-                    }
-                },
-                {
-                    "name": "Create Company — Duplicate Code (422)",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            { "key": "Accept",        "value": "application/json" },
-                            { "key": "Content-Type",  "value": "application/json" },
-                            { "key": "Authorization", "value": "Bearer {{token}}" }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"name\": \"Infosys Duplicate\",\n    \"code\": \"INFY\",\n    \"currency_code\": \"INR\",\n    \"timezone\": \"Asia/Kolkata\"\n}"
-                        },
-                        "url": { "raw": "{{base_url}}/companies", "host": ["{{base_url}}"], "path": ["companies"] }
+                        "type": "text/javascript"
                     }
                 }
-            ]
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept",        "value": "application/json" },
+                    { "key": "Content-Type",  "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"Infosys Ltd\",\n    \"code\": \"INFY\",\n    \"legal_name\": \"Infosys Limited\",\n    \"email\": \"info@infosys.com\",\n    \"phone\": \"9876543210\",\n    \"website\": \"https://infosys.com\",\n    \"tax_number\": \"GSTIN123456\",\n    \"registration_number\": \"REG123456\",\n    \"currency_code\": \"INR\",\n    \"timezone\": \"Asia/Kolkata\",\n    \"address_line1\": \"Electronics City, Phase 1\",\n    \"address_line2\": \"Near Wipro Gate\",\n    \"city\": \"Bangalore\",\n    \"state\": \"Karnataka\",\n    \"country\": \"India\",\n    \"postal_code\": \"560100\",\n    \"logo_path\": \"logos/infosys.png\",\n    \"is_active\": 1\n}"
+                },
+                "url": { "raw": "{{base_url}}/companies", "host": ["{{base_url}}"], "path": ["companies"] }
+            }
+        },
+        {
+            "name": "STEP 3 — Get Company by Slug (verify all fields returned)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "var json = pm.response.json();",
+                            "pm.test('Status 200', function() { pm.response.to.have.status(200); });",
+                            "pm.test('success = true', function() { pm.expect(json.success).to.be.true; });",
+                            "",
+                            "var fields = ['slug','code','name','legal_name','email','phone','website',",
+                            "    'tax_number','registration_number','currency_code','timezone',",
+                            "    'address_line1','address_line2','city','state','country',",
+                            "    'postal_code','logo_path','is_active','created_at','updated_at'];",
+                            "",
+                            "fields.forEach(function(field) {",
+                            "    pm.test('Field in response: ' + field, function() {",
+                            "        pm.expect(json.data).to.have.property(field);",
+                            "    });",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept",        "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/companies/{{company_slug}}",
+                    "host": ["{{base_url}}"],
+                    "path": ["companies", "{{company_slug}}"]
+                }
+            }
+        },
+        {
+            "name": "STEP 4 — List Companies (check all fields in each item)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "var json = pm.response.json();",
+                            "pm.test('Status 200', function() { pm.response.to.have.status(200); });",
+                            "pm.test('Pagination meta present', function() {",
+                            "    pm.expect(json.meta).to.have.property('current_page');",
+                            "    pm.expect(json.meta).to.have.property('per_page');",
+                            "    pm.expect(json.meta).to.have.property('total');",
+                            "});",
+                            "if (json.data && json.data.length > 0) {",
+                            "    var company = json.data[0];",
+                            "    var fields = ['slug','code','name','legal_name','email','phone','website',",
+                            "        'tax_number','registration_number','currency_code','timezone',",
+                            "        'address_line1','address_line2','city','state','country',",
+                            "        'postal_code','logo_path','is_active','created_at','updated_at'];",
+                            "    fields.forEach(function(f) {",
+                            "        pm.test('List item has field: ' + f, function() {",
+                            "            pm.expect(company).to.have.property(f);",
+                            "        });",
+                            "    });",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept",        "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": { "raw": "{{base_url}}/companies", "host": ["{{base_url}}"], "path": ["companies"] }
+            }
+        },
+        {
+            "name": "STEP 5 — Search Companies (?search=infosys)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200', function() { pm.response.to.have.status(200); });",
+                            "var json = pm.response.json();",
+                            "pm.test('Results found', function() { pm.expect(json.data.length).to.be.above(0); });"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept",        "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/companies?search=infosys",
+                    "host": ["{{base_url}}"],
+                    "path": ["companies"],
+                    "query": [{ "key": "search", "value": "infosys" }]
+                }
+            }
+        },
+        {
+            "name": "STEP 6 — Filter by is_active=1",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200', function() { pm.response.to.have.status(200); });",
+                            "var json = pm.response.json();",
+                            "if (json.data.length > 0) {",
+                            "    pm.test('All results are active', function() {",
+                            "        json.data.forEach(function(c) { pm.expect(c.is_active).to.be.true; });",
+                            "    });",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept",        "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/companies?is_active=1",
+                    "host": ["{{base_url}}"],
+                    "path": ["companies"],
+                    "query": [{ "key": "is_active", "value": "1" }]
+                }
+            }
+        },
+        {
+            "name": "STEP 7 — Update Company (ALL FIELDS)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "var json = pm.response.json();",
+                            "pm.test('Status 200', function() { pm.response.to.have.status(200); });",
+                            "pm.test('name updated',            function() { pm.expect(json.data.name).to.equal('Infosys Technologies Ltd'); });",
+                            "pm.test('legal_name updated',      function() { pm.expect(json.data.legal_name).to.equal('Infosys Technologies Limited'); });",
+                            "pm.test('email updated',           function() { pm.expect(json.data.email).to.equal('contact@infosys.com'); });",
+                            "pm.test('phone updated',           function() { pm.expect(json.data.phone).to.equal('8765432109'); });",
+                            "pm.test('website updated',         function() { pm.expect(json.data.website).to.equal('https://www.infosys.com'); });",
+                            "pm.test('tax_number updated',      function() { pm.expect(json.data.tax_number).to.equal('GSTIN_UPDATED'); });",
+                            "pm.test('reg_number updated',      function() { pm.expect(json.data.registration_number).to.equal('REG_UPDATED'); });",
+                            "pm.test('currency_code updated',   function() { pm.expect(json.data.currency_code).to.equal('USD'); });",
+                            "pm.test('timezone updated',        function() { pm.expect(json.data.timezone).to.equal('America/New_York'); });",
+                            "pm.test('address_line1 updated',   function() { pm.expect(json.data.address_line1).to.equal('Tower B, Sector 5'); });",
+                            "pm.test('address_line2 updated',   function() { pm.expect(json.data.address_line2).to.equal('Opposite Metro Station'); });",
+                            "pm.test('city updated',            function() { pm.expect(json.data.city).to.equal('Pune'); });",
+                            "pm.test('state updated',           function() { pm.expect(json.data.state).to.equal('Maharashtra'); });",
+                            "pm.test('country updated',         function() { pm.expect(json.data.country).to.equal('India'); });",
+                            "pm.test('postal_code updated',     function() { pm.expect(json.data.postal_code).to.equal('411001'); });",
+                            "pm.test('logo_path updated',       function() { pm.expect(json.data.logo_path).to.equal('logos/infosys_new.png'); });",
+                            "pm.test('is_active updated',       function() { pm.expect(json.data.is_active).to.be.false; });"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "PUT",
+                "header": [
+                    { "key": "Accept",        "value": "application/json" },
+                    { "key": "Content-Type",  "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"Infosys Technologies Ltd\",\n    \"legal_name\": \"Infosys Technologies Limited\",\n    \"email\": \"contact@infosys.com\",\n    \"phone\": \"8765432109\",\n    \"website\": \"https://www.infosys.com\",\n    \"tax_number\": \"GSTIN_UPDATED\",\n    \"registration_number\": \"REG_UPDATED\",\n    \"currency_code\": \"USD\",\n    \"timezone\": \"America/New_York\",\n    \"address_line1\": \"Tower B, Sector 5\",\n    \"address_line2\": \"Opposite Metro Station\",\n    \"city\": \"Pune\",\n    \"state\": \"Maharashtra\",\n    \"country\": \"India\",\n    \"postal_code\": \"411001\",\n    \"logo_path\": \"logos/infosys_new.png\",\n    \"is_active\": 0\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/companies/{{company_slug}}",
+                    "host": ["{{base_url}}"],
+                    "path": ["companies", "{{company_slug}}"]
+                }
+            }
+        },
+        {
+            "name": "STEP 8 — Validation: Phone too short (422)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 422', function() { pm.response.to.have.status(422); });",
+                            "var json = pm.response.json();",
+                            "pm.test('Phone error present', function() {",
+                            "    pm.expect(json.errors).to.have.property('phone');",
+                            "    pm.expect(json.errors.phone[0]).to.include('10 digits');",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept",        "value": "application/json" },
+                    { "key": "Content-Type",  "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"Short Phone Co\",\n    \"code\": \"SHRTPH\",\n    \"currency_code\": \"INR\",\n    \"timezone\": \"Asia/Kolkata\",\n    \"phone\": \"12345\"\n}"
+                },
+                "url": { "raw": "{{base_url}}/companies", "host": ["{{base_url}}"], "path": ["companies"] }
+            }
+        },
+        {
+            "name": "STEP 9 — Validation: Phone too long (422)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 422', function() { pm.response.to.have.status(422); });",
+                            "var json = pm.response.json();",
+                            "pm.test('Phone error present', function() {",
+                            "    pm.expect(json.errors).to.have.property('phone');",
+                            "    pm.expect(json.errors.phone[0]).to.include('10 digits');",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept",        "value": "application/json" },
+                    { "key": "Content-Type",  "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"Long Phone Co\",\n    \"code\": \"LONGPH\",\n    \"currency_code\": \"INR\",\n    \"timezone\": \"Asia/Kolkata\",\n    \"phone\": \"98765432109\"\n}"
+                },
+                "url": { "raw": "{{base_url}}/companies", "host": ["{{base_url}}"], "path": ["companies"] }
+            }
+        },
+        {
+            "name": "STEP 10 — Validation: Duplicate code (422)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 422', function() { pm.response.to.have.status(422); });",
+                            "var json = pm.response.json();",
+                            "pm.test('Code unique error', function() {",
+                            "    pm.expect(json.errors).to.have.property('code');",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept",        "value": "application/json" },
+                    { "key": "Content-Type",  "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"Infosys Duplicate\",\n    \"code\": \"INFY\",\n    \"currency_code\": \"INR\",\n    \"timezone\": \"Asia/Kolkata\"\n}"
+                },
+                "url": { "raw": "{{base_url}}/companies", "host": ["{{base_url}}"], "path": ["companies"] }
+            }
+        },
+        {
+            "name": "STEP 11 — Validation: Invalid website URL (422)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 422', function() { pm.response.to.have.status(422); });",
+                            "var json = pm.response.json();",
+                            "pm.test('Website URL error', function() {",
+                            "    pm.expect(json.errors).to.have.property('website');",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept",        "value": "application/json" },
+                    { "key": "Content-Type",  "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"Bad URL Co\",\n    \"code\": \"BADURL\",\n    \"currency_code\": \"INR\",\n    \"timezone\": \"Asia/Kolkata\",\n    \"website\": \"not-a-valid-url\"\n}"
+                },
+                "url": { "raw": "{{base_url}}/companies", "host": ["{{base_url}}"], "path": ["companies"] }
+            }
+        },
+        {
+            "name": "STEP 12 — Validation: Invalid email (422)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 422', function() { pm.response.to.have.status(422); });",
+                            "var json = pm.response.json();",
+                            "pm.test('Email error', function() {",
+                            "    pm.expect(json.errors).to.have.property('email');",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept",        "value": "application/json" },
+                    { "key": "Content-Type",  "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"Bad Email Co\",\n    \"code\": \"BADEML\",\n    \"currency_code\": \"INR\",\n    \"timezone\": \"Asia/Kolkata\",\n    \"email\": \"not-an-email\"\n}"
+                },
+                "url": { "raw": "{{base_url}}/companies", "host": ["{{base_url}}"], "path": ["companies"] }
+            }
+        },
+        {
+            "name": "STEP 13 — Validation: Missing required fields (422)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 422', function() { pm.response.to.have.status(422); });",
+                            "var json = pm.response.json();",
+                            "pm.test('name error',          function() { pm.expect(json.errors).to.have.property('name'); });",
+                            "pm.test('code error',          function() { pm.expect(json.errors).to.have.property('code'); });",
+                            "pm.test('currency_code error', function() { pm.expect(json.errors).to.have.property('currency_code'); });",
+                            "pm.test('timezone error',      function() { pm.expect(json.errors).to.have.property('timezone'); });"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept",        "value": "application/json" },
+                    { "key": "Content-Type",  "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{}"
+                },
+                "url": { "raw": "{{base_url}}/companies", "host": ["{{base_url}}"], "path": ["companies"] }
+            }
+        },
+        {
+            "name": "STEP 14 — Get Non-existent Slug (404)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 404', function() { pm.response.to.have.status(404); });",
+                            "pm.test('success = false', function() { pm.expect(pm.response.json().success).to.be.false; });"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept",        "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/companies/does-not-exist-xyz",
+                    "host": ["{{base_url}}"],
+                    "path": ["companies", "does-not-exist-xyz"]
+                }
+            }
+        },
+        {
+            "name": "STEP 15 — Delete Company",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200', function() { pm.response.to.have.status(200); });",
+                            "pm.test('success = true', function() { pm.expect(pm.response.json().success).to.be.true; });"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "DELETE",
+                "header": [
+                    { "key": "Accept",        "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/companies/{{company_slug}}",
+                    "host": ["{{base_url}}"],
+                    "path": ["companies", "{{company_slug}}"]
+                }
+            }
+        },
+        {
+            "name": "STEP 16 — Unauthenticated Request (401)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 401', function() { pm.response.to.have.status(401); });",
+                            "pm.test('success = false', function() { pm.expect(pm.response.json().success).to.be.false; });"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept", "value": "application/json" }
+                ],
+                "url": { "raw": "{{base_url}}/companies", "host": ["{{base_url}}"], "path": ["companies"] }
+            }
+        },
+        {
+            "name": "STEP 17 — Admin Logout",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200', function() { pm.response.to.have.status(200); });",
+                            "pm.test('success = true', function() { pm.expect(pm.response.json().success).to.be.true; });"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept",        "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": { "raw": "{{base_url}}/admin/logout", "host": ["{{base_url}}"], "path": ["admin", "logout"] }
+            }
         }
     ]
 }
