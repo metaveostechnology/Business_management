@@ -116,7 +116,11 @@ class AdminController extends Controller
                 return $this->errorResponse('Admin not found.', statusCode: 404);
             }
 
-            $data         = $request->validated();
+            $data = $request->validated();
+
+            // password_confirmation is only for validation — never save it to DB
+            unset($data['password_confirmation']);
+
             $updatedAdmin = $this->adminService->updateAdmin($admin, $data);
 
             return $this->successResponse(

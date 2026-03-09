@@ -39,6 +39,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/',               [AdminController::class, 'store'])->name('admins.store');
         Route::get('/{slug}',          [AdminController::class, 'show'])->name('admins.show');
         Route::put('/{slug}',          [AdminController::class, 'update'])->name('admins.update');
+        // POST alias for update — allows multipart/form-data from Postman to work correctly
+        Route::post('/{slug}',         [AdminController::class, 'update'])->name('admins.update.post');
         Route::delete('/{slug}',       [AdminController::class, 'destroy'])->name('admins.destroy');
         Route::post('/{slug}/restore', [AdminController::class, 'restore'])->name('admins.restore');
     });
