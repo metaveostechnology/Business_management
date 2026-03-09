@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Admin;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 class WebManagementTest extends TestCase
@@ -18,7 +19,7 @@ class WebManagementTest extends TestCase
             'status' => 'active'
         ]);
         
-        $this->actingAs($admin);
+        $this->actingAs($admin, 'admin');
     }
 
     /** @test */
@@ -61,5 +62,13 @@ class WebManagementTest extends TestCase
         $response = $this->get(route('companies.create'));
         $response->assertStatus(200);
         $response->assertViewIs('companies.create');
+    }
+
+    /** @test */
+    public function unauthenticated_admin_is_redirected_to_login()
+    {
+        Auth::guard('admin')->logout();
+        $response = $this->get(route('admins.index'));
+        $response->assertRedirect(route('login'));
     }
 }
