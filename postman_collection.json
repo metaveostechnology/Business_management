@@ -1,0 +1,279 @@
+{
+    "info": {
+        "_postman_id": "admins-management-api-collection",
+        "name": "Admin Management API",
+        "description": "Production-ready Admin Management REST API using Laravel 10 + Sanctum",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000/api",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Authentication",
+            "item": [
+                {
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var json = pm.response.json();",
+                                    "if (json.success && json.data && json.data.token) {",
+                                    "    pm.collectionVariables.set('token', json.data.token);",
+                                    "    pm.test('Token saved', function() { pm.expect(json.data.token).to.be.a('string'); });",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"},
+                            {"key": "Accept", "value": "application/json"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"login\": \"admin@example.com\",\n    \"password\": \"password123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admin/login",
+                            "host": ["{{base_url}}"],
+                            "path": ["admin", "login"]
+                        },
+                        "description": "Authenticate an admin using email or username and password. Auto-saves the returned token."
+                    }
+                },
+                {
+                    "name": "Login with Username",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"},
+                            {"key": "Accept", "value": "application/json"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"login\": \"admin\",\n    \"password\": \"password123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admin/login",
+                            "host": ["{{base_url}}"],
+                            "path": ["admin", "login"]
+                        }
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Accept", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/admin/logout",
+                            "host": ["{{base_url}}"],
+                            "path": ["admin", "logout"]
+                        },
+                        "description": "Revoke the current Sanctum token."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Profile",
+            "item": [
+                {
+                    "name": "Get Profile",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {"key": "Accept", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/admin/profile",
+                            "host": ["{{base_url}}"],
+                            "path": ["admin", "profile"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Profile",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"},
+                            {"key": "Accept", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Updated System Admin\",\n    \"phone\": \"9876543210\",\n    \"current_password\": \"password123\",\n    \"password\": \"newpassword123\",\n    \"password_confirmation\": \"newpassword123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admin/profile",
+                            "host": ["{{base_url}}"],
+                            "path": ["admin", "profile"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Admin Management",
+            "item": [
+                {
+                    "name": "List Admins",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {"key": "Accept", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/admins?per_page=10",
+                            "host": ["{{base_url}}"],
+                            "path": ["admins"],
+                            "query": [
+                                {"key": "per_page", "value": "10"},
+                                {"key": "search", "value": "", "disabled": true},
+                                {"key": "status", "value": "", "disabled": true}
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Search Admins",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {"key": "Accept", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/admins?search=john",
+                            "host": ["{{base_url}}"],
+                            "path": ["admins"],
+                            "query": [{"key": "search", "value": "john"}]
+                        }
+                    }
+                },
+                {
+                    "name": "Filter Admins by Status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {"key": "Accept", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/admins?status=active",
+                            "host": ["{{base_url}}"],
+                            "path": ["admins"],
+                            "query": [{"key": "status", "value": "active"}]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Admin by Slug",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {"key": "Accept", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/admins/system-admin",
+                            "host": ["{{base_url}}"],
+                            "path": ["admins", "system-admin"]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Admin",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"},
+                            {"key": "Accept", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"phone\": \"9999999999\",\n    \"username\": \"john\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"status\": \"active\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admins",
+                            "host": ["{{base_url}}"],
+                            "path": ["admins"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Admin",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"},
+                            {"key": "Accept", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"John Updated\",\n    \"status\": \"inactive\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admins/john-doe",
+                            "host": ["{{base_url}}"],
+                            "path": ["admins", "john-doe"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Admin (Soft Delete)",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {"key": "Accept", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/admins/john-doe",
+                            "host": ["{{base_url}}"],
+                            "path": ["admins", "john-doe"]
+                        }
+                    }
+                },
+                {
+                    "name": "Restore Deleted Admin",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Accept", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/admins/john-doe/restore",
+                            "host": ["{{base_url}}"],
+                            "path": ["admins", "john-doe", "restore"]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

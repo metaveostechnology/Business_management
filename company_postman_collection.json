@@ -1,0 +1,218 @@
+{
+    "info": {
+        "name": "Company Management API",
+        "description": "Admin Authentication + Company Management REST API — Laravel 10 + Sanctum",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        { "key": "base_url", "value": "http://127.0.0.1:8000/api", "type": "string" },
+        { "key": "token",    "value": "",                           "type": "string" }
+    ],
+    "item": [
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Admin Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var json = pm.response.json();",
+                                    "if (json.success && json.data && json.data.token) {",
+                                    "    pm.collectionVariables.set('token', json.data.token);",
+                                    "    console.log('Token saved:', json.data.token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Accept",       "value": "application/json" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"login\": \"admin@example.com\",\n    \"password\": \"password123\"\n}"
+                        },
+                        "url": { "raw": "{{base_url}}/admin/login", "host": ["{{base_url}}"], "path": ["admin", "login"] }
+                    }
+                },
+                {
+                    "name": "Admin Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Accept",         "value": "application/json" },
+                            { "key": "Authorization",  "value": "Bearer {{token}}" }
+                        ],
+                        "url": { "raw": "{{base_url}}/admin/logout", "host": ["{{base_url}}"], "path": ["admin", "logout"] }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Companies",
+            "item": [
+                {
+                    "name": "List Companies",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept",        "value": "application/json" },
+                            { "key": "Authorization", "value": "Bearer {{token}}" }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/companies",
+                            "host": ["{{base_url}}"],
+                            "path": ["companies"],
+                            "query": [
+                                { "key": "search",    "value": "",  "disabled": true },
+                                { "key": "is_active", "value": "1", "disabled": true },
+                                { "key": "per_page",  "value": "10","disabled": true }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Search Companies",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept",        "value": "application/json" },
+                            { "key": "Authorization", "value": "Bearer {{token}}" }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/companies?search=infosys",
+                            "host": ["{{base_url}}"],
+                            "path": ["companies"],
+                            "query": [
+                                { "key": "search", "value": "infosys" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Filter by Active Status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept",        "value": "application/json" },
+                            { "key": "Authorization", "value": "Bearer {{token}}" }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/companies?is_active=1",
+                            "host": ["{{base_url}}"],
+                            "path": ["companies"],
+                            "query": [
+                                { "key": "is_active", "value": "1" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Company by Slug",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept",        "value": "application/json" },
+                            { "key": "Authorization", "value": "Bearer {{token}}" }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/companies/infosys-ltd",
+                            "host": ["{{base_url}}"],
+                            "path": ["companies", "infosys-ltd"]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Company",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Accept",        "value": "application/json" },
+                            { "key": "Content-Type",  "value": "application/json" },
+                            { "key": "Authorization", "value": "Bearer {{token}}" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Infosys Ltd\",\n    \"code\": \"INFY\",\n    \"legal_name\": \"Infosys Limited\",\n    \"email\": \"info@infosys.com\",\n    \"phone\": \"9876543210\",\n    \"website\": \"https://infosys.com\",\n    \"tax_number\": \"GSTIN123456\",\n    \"registration_number\": \"REG123456\",\n    \"currency_code\": \"INR\",\n    \"timezone\": \"Asia/Kolkata\",\n    \"address_line1\": \"Electronics City\",\n    \"city\": \"Bangalore\",\n    \"state\": \"Karnataka\",\n    \"country\": \"India\",\n    \"postal_code\": \"560100\",\n    \"is_active\": 1\n}"
+                        },
+                        "url": { "raw": "{{base_url}}/companies", "host": ["{{base_url}}"], "path": ["companies"] }
+                    }
+                },
+                {
+                    "name": "Update Company",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            { "key": "Accept",        "value": "application/json" },
+                            { "key": "Content-Type",  "value": "application/json" },
+                            { "key": "Authorization", "value": "Bearer {{token}}" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Infosys Technologies\",\n    \"city\": \"Pune\",\n    \"is_active\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/companies/infosys-ltd",
+                            "host": ["{{base_url}}"],
+                            "path": ["companies", "infosys-ltd"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Company",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            { "key": "Accept",        "value": "application/json" },
+                            { "key": "Authorization", "value": "Bearer {{token}}" }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/companies/infosys-ltd",
+                            "host": ["{{base_url}}"],
+                            "path": ["companies", "infosys-ltd"]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Company — Invalid Phone (422)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Accept",        "value": "application/json" },
+                            { "key": "Content-Type",  "value": "application/json" },
+                            { "key": "Authorization", "value": "Bearer {{token}}" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Test Corp\",\n    \"code\": \"TSTCORP\",\n    \"currency_code\": \"INR\",\n    \"timezone\": \"Asia/Kolkata\",\n    \"phone\": \"123\"\n}"
+                        },
+                        "url": { "raw": "{{base_url}}/companies", "host": ["{{base_url}}"], "path": ["companies"] }
+                    }
+                },
+                {
+                    "name": "Create Company — Duplicate Code (422)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Accept",        "value": "application/json" },
+                            { "key": "Content-Type",  "value": "application/json" },
+                            { "key": "Authorization", "value": "Bearer {{token}}" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Infosys Duplicate\",\n    \"code\": \"INFY\",\n    \"currency_code\": \"INR\",\n    \"timezone\": \"Asia/Kolkata\"\n}"
+                        },
+                        "url": { "raw": "{{base_url}}/companies", "host": ["{{base_url}}"], "path": ["companies"] }
+                    }
+                }
+            ]
+        }
+    ]
+}
