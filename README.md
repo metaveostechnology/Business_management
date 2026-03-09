@@ -20,10 +20,10 @@ A **production-ready Admin Management REST API** built with **Laravel 10** and *
 
 The API maintains two completely isolated classes of users, each with their own dedicated authentication guards via Laravel Sanctum:
 
-1. **Admins:** Authenticate via `/api/admin/login` (default `web`/`sanctum` guard) to access `/api/admins/*` routes.
-2. **Company Users:** Authenticate via `/api/login` (custom `company` guard) to access `/api/companies/*` routes.
+1. **Admins:** Authenticate via `/api/admin/login` (default `web`/`sanctum` guard) to access `/api/admins/*` routes, as well as all `/api/companies/*` routes.
+2. **Company Users:** Authenticate via `/api/login` (custom `company` guard) to access `/api/companies/*` routes exclusively.
 
-Company users **must register or login first**. Without authentication, the user **cannot manage companies**. Admins **cannot** manage companies with an admin token.
+Both **Admins** and **Company Users** are natively authorized to manage companies. The API automatically validates the provided token against both Sanctum guards.
 
 ---
 
@@ -111,7 +111,7 @@ After login, include the token in every protected request:
 Authorization: Bearer {your_token_here}
 ```
 
-> **Note:** Because the system is two-tiered, ensure you are passing a **Company Token** to company management endpoints, and an **Admin Token** to admin endpoints. The system will throw `401 Unauthorized` if models are crossed.
+> **Note:** The system uses two Sanctum guards. Passing either an **Admin Token** or a **Company Token** to company management endpoints will successfully authenticate you. Admin endpoints strictly require an Admin token.
 
 **Example:**
 
@@ -333,8 +333,8 @@ Update the authenticated admin's own profile.
 
 ---
 
-### 🏢 Protected Routes (Company Users)
-*(Require Company Sanctum Token)*
+### 🏢 Protected Routes (Company Management)
+*(Require Company Sanctum Token OR Admin Sanctum Token)*
 
 #### `GET /api/companies`
 
