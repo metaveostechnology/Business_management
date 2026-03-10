@@ -43,7 +43,7 @@ http://localhost:8000/api
 
 ## 🔑 Authentication
 
-All company endpoints require a **Bearer Token** (obtained from admin login).
+All company endpoints require a **Bearer Token**. This token can be obtained from either an **Admin Login** or a **Company User Login**, as the API accepts both.
 
 ```
 Authorization: Bearer {your_token}

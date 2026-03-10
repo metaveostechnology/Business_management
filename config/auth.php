@@ -40,15 +40,18 @@ return [
             'driver'   => 'session',
             'provider' => 'users',
         ],
-
+         'admin' => [                    // ← Add this
+        'driver'   => 'session',
+        'provider' => 'admins',
+    ],
         'sanctum' => [
             'driver'   => 'sanctum',
             'provider' => 'admins',
         ],
 
-        'admin' => [
-            'driver'   => 'session',
-            'provider' => 'admins',
+        'company' => [
+            'driver'   => 'sanctum',
+            'provider' => 'company_registers',
         ],
     ],
 
@@ -78,6 +81,11 @@ return [
         'admins' => [
             'driver' => 'eloquent',
             'model'  => App\Models\Admin::class,
+        ],
+
+        'company_registers' => [
+            'driver' => 'eloquent',
+            'model'  => App\Models\CompanyRegister::class,
         ],
     ],
 

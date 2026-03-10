@@ -7,8 +7,21 @@ use App\Http\Controllers\Web\DashboardController;
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Web\CompanyFrontendController;
+
 Route::get('/', function () {
-    return redirect()->route('login');
+    return redirect()->route('company.frontend.login');
+});
+
+// Company Frontend Routes (Interacts mainly visually and uses JS to call API)
+Route::prefix('company')->name('company.frontend.')->group(function () {
+    // Public routes
+    Route::get('/login', [CompanyFrontendController::class, 'login'])->name('login');
+    Route::get('/register', [CompanyFrontendController::class, 'register'])->name('register');
+    
+    // Protected routes (handled on client side via JS checking localStorage auth tokens)
+    Route::get('/dashboard', [CompanyFrontendController::class, 'dashboard'])->name('dashboard');
+    Route::get('/profile', [CompanyFrontendController::class, 'profile'])->name('profile');
 });
 
 // App Admin Routes

@@ -11,7 +11,33 @@
     ],
     "item": [
         {
-            "name": "STEP 1 — Admin Login",
+            "name": "STEP 0 — Register Company User",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Registration success', function() { pm.response.to.have.status(201); });"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept",       "value": "application/json" },
+                    { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"email\": \"companyadmin@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}"
+                },
+                "url": { "raw": "{{base_url}}/register", "host": ["{{base_url}}"], "path": ["register"] }
+            }
+        },
+        {
+            "name": "STEP 0.5 — Admin Login (Alternative)",
             "event": [
                 {
                     "listen": "test",
@@ -21,7 +47,7 @@
                             "pm.test('Login success', function() { pm.response.to.have.status(200); });",
                             "if (json.success && json.data && json.data.token) {",
                             "    pm.collectionVariables.set('token', json.data.token);",
-                            "    console.log('✅ Token saved:', json.data.token);",
+                            "    console.log('✅ Admin Token saved:', json.data.token);",
                             "}"
                         ],
                         "type": "text/javascript"
@@ -39,6 +65,37 @@
                     "raw": "{\n    \"login\": \"admin@example.com\",\n    \"password\": \"password123\"\n}"
                 },
                 "url": { "raw": "{{base_url}}/admin/login", "host": ["{{base_url}}"], "path": ["admin", "login"] }
+            }
+        },
+        {
+            "name": "STEP 1 — Company Login",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "var json = pm.response.json();",
+                            "pm.test('Login success', function() { pm.response.to.have.status(200); });",
+                            "if (json.success && json.token) {",
+                            "    pm.collectionVariables.set('token', json.token);",
+                            "    console.log('✅ Token saved:', json.token);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept",       "value": "application/json" },
+                    { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"email\": \"companyadmin@example.com\",\n    \"password\": \"password123\"\n}"
+                },
+                "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] }
             }
         },
         {
@@ -567,7 +624,7 @@
             }
         },
         {
-            "name": "STEP 17 — Admin Logout",
+            "name": "STEP 17 — Company Logout",
             "event": [
                 {
                     "listen": "test",
@@ -586,7 +643,7 @@
                     { "key": "Accept",        "value": "application/json" },
                     { "key": "Authorization", "value": "Bearer {{token}}" }
                 ],
-                "url": { "raw": "{{base_url}}/admin/logout", "host": ["{{base_url}}"], "path": ["admin", "logout"] }
+                "url": { "raw": "{{base_url}}/logout", "host": ["{{base_url}}"], "path": ["logout"] }
             }
         }
     ]

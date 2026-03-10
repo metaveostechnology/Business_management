@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Admin;
 use App\Models\Company;
+use App\Models\CompanyRegister;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -13,7 +14,7 @@ class CompanyApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected Admin $admin;
+    protected CompanyRegister $companyUser;
     protected string $token;
     protected string $uniqueEmail;
 
@@ -21,18 +22,15 @@ class CompanyApiTest extends TestCase
     {
         parent::setUp();
 
-        $this->uniqueEmail = 'admin_co_' . uniqid() . '@example.com';
+        $this->uniqueEmail = 'company_admin_' . uniqid() . '@example.com';
 
-        $this->admin = Admin::create([
-            'slug'     => 'test-admin-co-' . uniqid(),
-            'name'     => 'Test Admin',
-            'email'    => $this->uniqueEmail,
-            'username' => 'testadminco_' . uniqid(),
-            'password' => bcrypt('password123'),
-            'status'   => 'active',
+        $this->companyUser = CompanyRegister::create([
+            'email'     => $this->uniqueEmail,
+            'password'  => bcrypt('password123'),
+            'is_active' => 1,
         ]);
 
-        $this->token = $this->admin->createToken('test-token')->plainTextToken;
+        $this->token = $this->companyUser->createToken('test-token')->plainTextToken;
     }
 
     // ────────────────────────────────────────────────────────

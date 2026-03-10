@@ -16,6 +16,15 @@ A **production-ready Admin Management REST API** built with **Laravel 10** and *
 | Response Format | API Resources (JSON) |
 | Validation | Laravel FormRequest |
 
+## 👥 Two-Tier Authentication System
+
+The API maintains two completely isolated classes of users, each with their own dedicated authentication guards via Laravel Sanctum:
+
+1. **Admins:** Authenticate via `/api/admin/login` (default `web`/`sanctum` guard) to access `/api/admins/*` routes, as well as all `/api/companies/*` routes.
+2. **Company Users:** Authenticate via `/api/login` (custom `company` guard) to access `/api/companies/*` routes exclusively.
+
+Both **Admins** and **Company Users** are natively authorized to manage companies. The API automatically validates the provided token against both Sanctum guards.
+
 ---
 
 ## 📋 Prerequisites
@@ -102,6 +111,8 @@ After login, include the token in every protected request:
 Authorization: Bearer {your_token_here}
 ```
 
+> **Note:** The system uses two Sanctum guards. Passing either an **Admin Token** or a **Company Token** to company management endpoints will successfully authenticate you. Admin endpoints strictly require an Admin token.
+
 **Example:**
 
 ```bash
@@ -122,7 +133,59 @@ http://localhost:8000/api
 
 ---
 
-### Public Routes
+### 🏢 Public Routes (Company Users)
+
+#### `POST /api/register`
+
+Register a new company user.
+
+**Request Body:**
+
+```json
+{
+    "email": "company@example.com",
+    "password": "password123",
+    "password_confirmation": "password123"
+}
+```
+
+**Success Response (201):**
+
+```json
+{
+    "success": true,
+    "message": "Registration successful"
+}
+```
+
+---
+
+#### `POST /api/login`
+
+Authenticate a company user.
+
+**Request Body:**
+
+```json
+{
+    "email": "company@example.com",
+    "password": "password123"
+}
+```
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Login successful",
+    "token": "1|abc123sanctumtokenhere"
+}
+```
+
+---
+
+### 🛡️ Public Routes (Admin)
 
 #### `POST /api/admin/login`
 
@@ -194,6 +257,9 @@ Authenticate an admin using **email or username** with password.
 > All routes below require the header: `Authorization: Bearer {token}`
 
 ---
+
+### 🛡️ Protected Routes (Admin)
+*(Require Admin Sanctum Token)*
 
 #### `POST /api/admin/logout`
 
@@ -267,9 +333,12 @@ Update the authenticated admin's own profile.
 
 ---
 
-#### `GET /api/admins`
+### 🏢 Protected Routes (Company Management)
+*(Require Company Sanctum Token OR Admin Sanctum Token)*
 
-List all admins with **pagination**, **search**, and **status filter**.
+#### `GET /api/companies`
+
+List all companies with **pagination**, **search**, and **status filter**.
 
 **Query Parameters:**
 
