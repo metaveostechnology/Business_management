@@ -27,7 +27,7 @@ class WebManagementTest extends TestCase
     {
         $response = $this->get(route('admins.index'));
         $response->assertStatus(200);
-        $response->assertViewIs('admins.index');
+        $response->assertViewIs('appadmin.admins.index');
     }
 
     /** @test */
@@ -35,7 +35,7 @@ class WebManagementTest extends TestCase
     {
         $response = $this->get(route('admins.create'));
         $response->assertStatus(200);
-        $response->assertViewIs('admins.create');
+        $response->assertViewIs('appadmin.admins.create');
     }
 
     /** @test */
@@ -44,7 +44,7 @@ class WebManagementTest extends TestCase
         $admin = Admin::factory()->create();
         $response = $this->get(route('admins.show', $admin->slug));
         $response->assertStatus(200);
-        $response->assertViewIs('admins.show');
+        $response->assertViewIs('appadmin.admins.show');
     }
 
     /** @test */
@@ -53,7 +53,15 @@ class WebManagementTest extends TestCase
         $admin = Admin::factory()->create();
         $response = $this->get(route('admins.edit', $admin->slug));
         $response->assertStatus(200);
-        $response->assertViewIs('admins.edit');
+        $response->assertViewIs('appadmin.admins.edit');
+    }
+
+    /** @test */
+    public function can_access_company_index()
+    {
+        $response = $this->get(route('companies.index'));
+        $response->assertStatus(200);
+        $response->assertViewIs('appadmin.companies.index');
     }
 
     /** @test */
@@ -61,7 +69,62 @@ class WebManagementTest extends TestCase
     {
         $response = $this->get(route('companies.create'));
         $response->assertStatus(200);
-        $response->assertViewIs('companies.create');
+        $response->assertViewIs('appadmin.companies.create');
+    }
+
+    /** @test */
+    public function can_access_company_show_page()
+    {
+        $company = \App\Models\Company::factory()->create();
+        $response = $this->get(route('companies.show', $company->slug));
+        $response->assertStatus(200);
+        $response->assertViewIs('appadmin.companies.show');
+    }
+
+    /** @test */
+    public function can_access_company_edit_page()
+    {
+        $company = \App\Models\Company::factory()->create();
+        $response = $this->get(route('companies.edit', $company->slug));
+        $response->assertStatus(200);
+        $response->assertViewIs('appadmin.companies.edit');
+    }
+
+    /** @test */
+    public function can_update_admin_without_email_conflict()
+    {
+        $admin = Auth::guard('admin')->user();
+        $response = $this->from(route('admins.edit', $admin->slug))
+            ->put(route('admins.update', $admin->slug), [
+                'name' => 'Updated Name',
+                'email' => $admin->email,
+            ]);
+
+        $response->assertRedirect(route('admins.index'));
+        $response->assertSessionHas('success');
+        $this->assertEquals('Updated Name', $admin->fresh()->name);
+    }
+
+    /** @test */
+    public function can_delete_admin()
+    {
+        $admin = Admin::factory()->create();
+        $response = $this->delete(route('admins.destroy', $admin->slug));
+
+        $response->assertRedirect(route('admins.index'));
+        $response->assertSessionHas('success');
+        $this->assertSoftDeleted('admins', ['id' => $admin->id]);
+    }
+
+    /** @test */
+    public function can_delete_company()
+    {
+        $company = \App\Models\Company::factory()->create();
+        $response = $this->delete(route('companies.destroy', $company->slug));
+
+        $response->assertRedirect(route('companies.index'));
+        $response->assertSessionHas('success');
+        $this->assertDatabaseMissing('companies', ['id' => $company->id]);
     }
 
     /** @test */

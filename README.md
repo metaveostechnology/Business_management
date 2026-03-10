@@ -405,9 +405,13 @@ Create a new admin. **Slug is auto-generated from name**.
 
 ---
 
-#### `PUT /api/admins/{slug}`
+#### `POST /api/admins/{slug}` ← **Use this in Postman for form-data**
+### `PUT  /api/admins/{slug}` ← JSON-only updates
 
 Update an existing admin by slug.
+
+> **Important:** HTTP `PUT` cannot carry `multipart/form-data` in Postman/most clients.  
+> If you are using form-data in Postman, use **`POST /api/admins/{slug}`**. If using raw JSON, you can use `PUT`.
 
 **Request Body (all fields optional):**
 

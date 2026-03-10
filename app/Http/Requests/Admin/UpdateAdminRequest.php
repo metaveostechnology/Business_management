@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Admin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,29 +21,28 @@ class UpdateAdminRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Resolve admin model bound via route slug
+        // Resolve admin via route parameter (provided by Route Model Binding)
         $admin = $this->route('admin');
 
         return [
-            'name'                  => ['sometimes', 'required', 'string', 'max:150'],
-            'email'                 => [
+            'name'     => ['sometimes', 'string', 'max:150'],
+            'email'    => [
                 'sometimes',
-                'required',
                 'email',
                 'max:150',
                 Rule::unique('admins', 'email')->ignore($admin?->id)->whereNull('deleted_at'),
             ],
-            'phone'                 => ['nullable', 'digits:10'],
-            'username'              => [
+            'phone'    => ['nullable', 'digits:10'],
+            'username' => [
+                'sometimes',
                 'nullable',
                 'string',
                 'max:100',
                 'alpha_dash',
                 Rule::unique('admins', 'username')->ignore($admin?->id)->whereNull('deleted_at'),
             ],
-            'password'              => ['nullable', 'string', 'min:8', 'confirmed'],
-            'password_confirmation' => ['nullable', 'string'],
-            'status'                => ['sometimes', 'required', 'in:active,inactive,blocked'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'status'   => ['sometimes', 'in:active,inactive,blocked'],
         ];
     }
 
@@ -52,8 +52,10 @@ class UpdateAdminRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'email.email'           => 'Please provide a valid email address.',
             'email.unique'          => 'This email address is already in use.',
             'username.unique'       => 'This username is already taken.',
+            'username.alpha_dash'   => 'Username may only contain letters, numbers, dashes and underscores.',
             'phone.digits'          => 'Phone number must be exactly 10 digits.',
             'password.min'          => 'Password must be at least 8 characters.',
             'password.confirmed'    => 'Password confirmation does not match.',

@@ -3,6 +3,8 @@
 use App\Http\Controllers\Web\AdminController;
 use App\Http\Controllers\Web\CompanyController;
 use App\Http\Controllers\Web\AuthController;
+use App\Http\Controllers\Web\DashboardController;
+
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -22,15 +24,12 @@ Route::prefix('appadmin')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         
         // Dashboard (redirects to admins list for now as per "App Admin only can see other app admins")
-        Route::get('/dashboard', function() {
-            return redirect()->route('admins.index');
-        })->name('dashboard');
-
+          Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+       
         // Admin Management
         Route::resource('admins', AdminController::class);
 
         // Company Management
-        Route::get('companies/create', [CompanyController::class, 'create'])->name('companies.create');
-        Route::post('companies', [CompanyController::class, 'store'])->name('companies.store');
+        Route::resource('companies', CompanyController::class);
     });
 });

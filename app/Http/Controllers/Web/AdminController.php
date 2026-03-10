@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Models\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CreateAdminRequest;
 use App\Http\Requests\Admin\UpdateAdminRequest;
@@ -25,7 +26,7 @@ class AdminController extends Controller
                 perPage: (int) $request->query('per_page', 10)
             );
 
-            return view('admins.index', compact('admins'));
+            return view('appadmin.admins.index', compact('admins'));
         } catch (Throwable $e) {
             Log::error('Web Admin index error', ['error' => $e->getMessage()]);
             return back()->with('error', 'An error occurred while fetching admins.');
@@ -34,7 +35,7 @@ class AdminController extends Controller
 
     public function create()
     {
-        return view('admins.create');
+        return view('appadmin.admins.create');
     }
 
     public function store(CreateAdminRequest $request)
@@ -48,67 +49,54 @@ class AdminController extends Controller
         }
     }
 
-    public function show(string $slug)
+    public function show(Admin $admin)
     {
         try {
-            $admin = $this->adminService->findBySlug($slug);
-            if (!$admin) {
-                return redirect()->route('admins.index')->with('error', 'Admin not found.');
-            }
-            return view('admins.show', compact('admin'));
+            return view('appadmin.admins.show', compact('admin'));
         } catch (Throwable $e) {
-            Log::error('Web Admin show error', ['slug' => $slug, 'error' => $e->getMessage()]);
+            Log::error('Web Admin show error', ['id' => $admin->id, 'error' => $e->getMessage()]);
             return redirect()->route('admins.index')->with('error', 'An error occurred while fetching the admin.');
         }
     }
 
-    public function edit(string $slug)
+    public function edit(Admin $admin)
     {
         try {
-            $admin = $this->adminService->findBySlug($slug);
-            if (!$admin) {
-                return redirect()->route('admins.index')->with('error', 'Admin not found.');
-            }
-            return view('admins.edit', compact('admin'));
+            return view('appadmin.admins.edit', compact('admin'));
         } catch (Throwable $e) {
-            Log::error('Web Admin edit error', ['slug' => $slug, 'error' => $e->getMessage()]);
+            Log::error('Web Admin edit error', ['id' => $admin->id, 'error' => $e->getMessage()]);
             return redirect()->route('admins.index')->with('error', 'An error occurred while fetching the admin.');
         }
     }
 
-    public function update(UpdateAdminRequest $request, string $slug)
+    public function update(UpdateAdminRequest $request, Admin $admin)
     {
         try {
-            $admin = $this->adminService->findBySlug($slug);
-            if (!$admin) {
-                return redirect()->route('admins.index')->with('error', 'Admin not found.');
-            }
-
             $this->adminService->updateAdmin($admin, $request->validated());
             return redirect()->route('admins.index')->with('success', 'Admin updated successfully.');
         } catch (Throwable $e) {
-            Log::error('Web Admin update error', ['slug' => $slug, 'error' => $e->getMessage()]);
+            Log::error('Web Admin update error', ['id' => $admin->id, 'error' => $e->getMessage()]);
             return back()->withInput()->with('error', 'An error occurred while updating the admin.');
         }
     }
 
-    public function destroy(Request $request, string $slug)
-    {
-        try {
-            $admin = $this->adminService->findBySlug($slug);
-            if (!$admin) {
-                return redirect()->route('admins.index')->with('error', 'Admin not found.');
-            }
+     public function destroy(Request $request, Admin $admin)
+{
+    try {
+        $loggedInAdmin = $request->user('admin');
 
-            if ($admin->id === $request->user()->id) {
-                return back()->with('error', 'You cannot delete your own account.');
-            }
-
-            $this->adminService->deleteAdmin($admin);
-            return redirect()->route('admins.index')->with('success', 'Admin deleted successfully.');
-        } catch (Throwable $e) {
-            Log::error('Web Admin destroy error', ['slug' => $slug, 'error' => $e->getMessage()]);
-            return back()->with('error', 'An error occurred while deleting the admin.');
+        if ($loggedInAdmin && $admin->id === $loggedInAdmin->id) {
+            return back()->with('error', 'You cannot delete your own account.');
         }
+
+        $this->adminService->deleteAdmin($admin);
+        return redirect()->route('admins.index')->with('success', 'Admin deleted successfully.');
+    } catch (Throwable $e) {
+        Log::error('Web Admin destroy error', [
+            'admin_id' => $admin->id,
+            'error' => $e->getMessage()
+        ]);
+        return back()->with('error', 'An error occurred while deleting the admin.');
     }
+}
 }

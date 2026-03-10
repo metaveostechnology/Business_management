@@ -17,7 +17,7 @@ class AuthController extends Controller
     public function showLoginForm()
     {
         if (Auth::guard('admin')->check()) {
-            return redirect()->route('admins.index');
+            return redirect()->route('dashboard');
         }
         return view('auth.login');
     }
@@ -55,7 +55,7 @@ class AuthController extends Controller
                     'last_login_ip' => $request->ip(),
                 ]);
 
-                return redirect()->intended(route('admins.index'));
+                return redirect()->intended(route('dashboard'));
             }
 
             return back()->withErrors([
