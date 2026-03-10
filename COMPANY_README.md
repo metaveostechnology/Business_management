@@ -1,3 +1,4 @@
+
 # Company Management API
 
 A **production-ready Company Management REST API** built on top of the **Admin Management API** using **Laravel 10 + Laravel Sanctum**.

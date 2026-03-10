@@ -21,9 +21,8 @@ class UpdateAdminRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Resolve admin via route slug (route param is {slug}, not {admin})
-        $slug  = $this->route('slug');
-        $admin = Admin::where('slug', $slug)->first();
+        // Resolve admin via route parameter (provided by Route Model Binding)
+        $admin = $this->route('admin');
 
         return [
             'name'     => ['sometimes', 'string', 'max:150'],

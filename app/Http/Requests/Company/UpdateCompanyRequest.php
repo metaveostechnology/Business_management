@@ -20,9 +20,8 @@ class UpdateCompanyRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Resolve the company by slug from the route parameter
-        $slug    = $this->route('slug');
-        $company = \App\Models\Company::where('slug', $slug)->first();
+        // Resolve the company by route parameter (provided by Route Model Binding)
+        $company = $this->route('company');
         $id      = $company?->id;
 
         return [

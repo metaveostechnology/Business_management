@@ -63,4 +63,5 @@ class Admin extends Authenticatable
     {
         return 'slug';
     }
+    
 }

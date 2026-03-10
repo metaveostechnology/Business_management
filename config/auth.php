@@ -40,7 +40,10 @@ return [
             'driver'   => 'session',
             'provider' => 'users',
         ],
-
+         'admin' => [                    // ← Add this
+        'driver'   => 'session',
+        'provider' => 'admins',
+    ],
         'sanctum' => [
             'driver'   => 'sanctum',
             'provider' => 'admins',

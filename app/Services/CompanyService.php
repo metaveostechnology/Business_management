@@ -32,11 +32,26 @@ class CompanyService
     /**
      * Create a new company with auto-generated slug.
      */
-    public function createCompany(array $data): Company
+    public function createCompany(array $data): \App\Models\Company
     {
+        // Extract raw password before we unset it (since it doesn't belong in the companies table)
+        $rawPassword = $data['password'] ?? null;
+        unset($data['password']);
+
         $data['slug'] = $this->generateUniqueSlug($data['name']);
 
-        return $this->companyRepository->create($data);
+        $company = $this->companyRepository->create($data);
+
+        // Provision the company_register login if email and password were provided
+        if (!empty($data['email']) && !empty($rawPassword)) {
+            \App\Models\CompanyRegister::create([
+                'email' => $data['email'],
+                'password' => \Illuminate\Support\Facades\Hash::make($rawPassword),
+                'is_active' => $data['is_active'] ?? true, // Synchronize active state
+            ]);
+        }
+
+        return $company;
     }
 
     /**
