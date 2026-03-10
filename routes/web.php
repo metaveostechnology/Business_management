@@ -14,7 +14,7 @@ Route::get('/', function () {
 });
 
 // Company Frontend Routes (Interacts mainly visually and uses JS to call API)
-Route::prefix('company')->name('company.frontend.')->group(function () {
+Route::name('company.frontend.')->prefix('company')->group(function () {
     // Public routes
     Route::get('/login', [CompanyFrontendController::class, 'login'])->name('login');
     Route::get('/register', [CompanyFrontendController::class, 'register'])->name('register');
