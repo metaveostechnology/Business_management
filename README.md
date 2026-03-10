@@ -2,7 +2,7 @@
 
 A **production-ready Business Management REST API** built with **Laravel** and **Laravel Sanctum**, following the **Repository + Service Pattern** with full API Resource transformation and FormRequest validation.
 
-Modules covered: **Admin Management**, **Company Management**, **Branch Management**, **Feature Management**, **Department Management**, **Department Features**.
+Modules covered: **Admin Management**, **Company Management**, **Branch Management**, **Feature Management**, **Department Management**, **Department Features**, **System Settings**.
 
 ---
 
@@ -1486,18 +1486,210 @@ Remove a feature from a department.
 
 ---
 
+### ⚙️ Protected Routes (Company User — System Settings)
+*(Require Company User Sanctum Token only)*
+
+> Settings are **company-scoped**. A company user can only access settings belonging to their own company.
+> `company_id` is **automatically set** from the auth token.
+> `setting_group` and `setting_key` are **immutable** after creation.
+> Returns `409 Conflict` if the same (company, branch, group, key) combination already exists.
+
+---
+
+#### `GET /api/company/settings`
+
+List all settings for the authenticated company, ordered by `setting_group` then `setting_key`.
+
+**Query Parameters:**
+
+| Parameter | Type   | Description                             |
+|-----------|--------|-----------------------------------------|
+| `search`  | string | Search by setting_key or setting_group  |
+| `group`   | string | Filter by exact setting_group name      |
+
+**Examples:**
+
+```
+GET /api/company/settings
+GET /api/company/settings?group=company
+GET /api/company/settings?search=timezone
+```
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Settings retrieved successfully.",
+    "data": [
+        {
+            "id": 1,
+            "company_id": 3,
+            "branch_id": null,
+            "slug": "company-timezone",
+            "setting_group": "company",
+            "setting_key": "timezone",
+            "setting_value": "Asia/Kolkata",
+            "casted_value": "Asia/Kolkata",
+            "value_type": "string",
+            "is_public": false,
+            "created_at": "2026-03-10 15:50:00",
+            "updated_at": "2026-03-10 15:50:00"
+        }
+    ]
+}
+```
+
+---
+
+#### `POST /api/company/settings`
+
+Create a new system setting. **Slug is auto-generated** as `{setting_group}-{setting_key}`.
+
+**Request Body:**
+
+```json
+{
+    "setting_group": "company",
+    "setting_key": "timezone",
+    "setting_value": "Asia/Kolkata",
+    "value_type": "string",
+    "branch_id": null,
+    "is_public": false
+}
+```
+
+**Validation Rules:**
+
+| Field           | Rules                                                    |
+|-----------------|----------------------------------------------------------|
+| `setting_group` | required, string, max:80                                 |
+| `setting_key`   | required, string, max:100                                |
+| `setting_value` | nullable                                                 |
+| `value_type`    | in: string, integer, float, boolean, json, text          |
+| `branch_id`     | nullable, exists:branches,id                             |
+| `is_public`     | boolean                                                  |
+
+**Success Response (201):**
+
+```json
+{
+    "success": true,
+    "message": "Setting created successfully.",
+    "data": {
+        "id": 1,
+        "company_id": 3,
+        "slug": "company-timezone",
+        "setting_group": "company",
+        "setting_key": "timezone",
+        "setting_value": "Asia/Kolkata",
+        "casted_value": "Asia/Kolkata",
+        "value_type": "string",
+        "is_public": false
+    }
+}
+```
+
+**Conflict Error (409):**
+
+```json
+{
+    "success": false,
+    "message": "This setting key already exists for the given group and scope."
+}
+```
+
+---
+
+#### `GET /api/company/settings/{slug}`
+
+Get a single setting by slug.
+
+**Example:** `GET /api/company/settings/company-timezone`
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Setting retrieved successfully.",
+    "data": {
+        "slug": "company-timezone",
+        "setting_group": "company",
+        "setting_key": "timezone",
+        "setting_value": "Asia/Kolkata",
+        "casted_value": "Asia/Kolkata",
+        ...
+    }
+}
+```
+
+---
+
+#### `PUT /api/company/settings/{slug}`
+
+Update a setting's value, type, or visibility.
+
+> `setting_group` and `setting_key` **cannot be changed** after creation.
+
+**Request Body:**
+
+```json
+{
+    "setting_value": "42",
+    "value_type": "integer",
+    "is_public": true
+}
+```
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Setting updated successfully.",
+    "data": {
+        "slug": "company-max-users",
+        "setting_value": "42",
+        "casted_value": 42,
+        "value_type": "integer",
+        "is_public": true
+    }
+}
+```
+
+> **Note:** `casted_value` returns the setting_value cast to its proper PHP type based on `value_type` (integer, float, boolean, JSON array, or string).
+
+---
+
+#### `DELETE /api/company/settings/{slug}`
+
+Delete a system setting.
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Setting deleted successfully."
+}
+```
+
+---
+
 ## 🔢 Slug Generation Rules
 
 Slugs are **automatically generated** from the resource name:
 
-| Resource | Example Name | Generated Slug |
-|----------|------|----------------|
+| Resource | Example Name / Key | Generated Slug |
+|----------|--------------------|----------------|
 | Admin | John Doe | `john-doe` |
 | Branch | Bhubaneswar Head Office | `bhubaneswar-head-office` |
 | Feature | Live Location Tracking | `live-location-tracking` |
 | Department | Human Resource Department | `human-resource-department` |
-| Dept. Feature | HR Dept + Employee Management | `hr-department-employee-management` |
-| Dept. Feature (exists) | same pair | `hr-department-employee-management-2` |
+| Dept. Feature | hr-department + employee-management | `hr-department-employee-management` |
+| System Setting | group=`company`, key=`timezone` | `company-timezone` |
+| System Setting (exists) | same group + key | `company-timezone-2` |
 
 ---
 
