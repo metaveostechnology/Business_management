@@ -1,6 +1,8 @@
-# Admin Management REST API
+# Business Management REST API
 
-A **production-ready Admin Management REST API** built with **Laravel 10** and **Laravel Sanctum**, following the **Repository + Service Pattern** with full API Resource transformation and FormRequest validation.
+A **production-ready Business Management REST API** built with **Laravel** and **Laravel Sanctum**, following the **Repository + Service Pattern** with full API Resource transformation and FormRequest validation.
+
+Modules covered: **Admin Management**, **Company Management**, **Branch Management**, **Feature Management**, **Department Management**, **Department Features**.
 
 ---
 
@@ -20,10 +22,10 @@ A **production-ready Admin Management REST API** built with **Laravel 10** and *
 
 The API maintains two completely isolated classes of users, each with their own dedicated authentication guards via Laravel Sanctum:
 
-1. **Admins:** Authenticate via `/api/admin/login` (default `web`/`sanctum` guard) to access `/api/admins/*` routes, as well as all `/api/companies/*` routes.
-2. **Company Users:** Authenticate via `/api/login` (custom `company` guard) to access `/api/companies/*` routes exclusively.
+1. **Admins:** Authenticate via `/api/admin/login` (default `web`/`sanctum` guard) to access `/api/admins/*` and `/api/companies/*` routes.
+2. **Company Users:** Authenticate via `/api/login` (custom `company` guard) to access `/api/companies/*` and `/api/company/branches/*` routes.
 
-Both **Admins** and **Company Users** are natively authorized to manage companies. The API automatically validates the provided token against both Sanctum guards.
+Both **Admins** and **Company Users** are authorized to manage companies. Company Users can only manage branches that **belong to their own company**.
 
 ---
 
@@ -559,15 +561,943 @@ Restore a soft-deleted admin.
 
 ---
 
+### 🏢 Protected Routes (Company User — Branch Management)
+*(Require Company User Sanctum Token only)*
+
+> All Branch routes are scoped to the authenticated company user's company. A company user **cannot access branches of another company**.
+
+---
+
+#### `GET /api/company/branches`
+
+List all branches belonging to the authenticated company user's company, with **pagination**, **search**, and **status filter**.
+
+**Query Parameters:**
+
+| Parameter  | Type    | Description                          |
+|------------|---------|--------------------------------------|
+| `search`   | string  | Search by name, code, email, city    |
+| `is_active`| boolean | Filter: `1` (active), `0` (inactive) |
+| `per_page` | int     | Items per page (default: 10)         |
+
+**Examples:**
+
+```
+GET /api/company/branches
+GET /api/company/branches?search=bhubaneswar
+GET /api/company/branches?is_active=1
+GET /api/company/branches?search=head&is_active=1&per_page=5
+```
+
+**Paginated Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Branches retrieved successfully.",
+    "data": [
+        {
+            "id": 1,
+            "company_id": 3,
+            "code": "BHB-001",
+            "name": "Bhubaneswar Head Office",
+            "slug": "bhubaneswar-head-office",
+            "email": "bhubaneswar@example.com",
+            "phone": "9876543210",
+            "manager_user_id": null,
+            "address_line1": "Plot 12, Saheed Nagar",
+            "address_line2": null,
+            "city": "Bhubaneswar",
+            "state": "Odisha",
+            "country": "India",
+            "postal_code": "751007",
+            "google_map_link": "https://maps.google.com/?q=20.2961,85.8245",
+            "is_head_office": true,
+            "is_active": true,
+            "created_at": "2026-03-10 09:28:00",
+            "updated_at": "2026-03-10 09:28:00"
+        }
+    ],
+    "meta": {
+        "current_page": 1,
+        "per_page": 10,
+        "total": 3,
+        "last_page": 1,
+        "from": 1,
+        "to": 3
+    },
+    "links": {
+        "first": "http://localhost:8000/api/company/branches?page=1",
+        "last": "http://localhost:8000/api/company/branches?page=1",
+        "prev": null,
+        "next": null
+    }
+}
+```
+
+---
+
+#### `POST /api/company/branches`
+
+Create a new branch under the authenticated company.
+
+> **Slug is auto-generated from name.** `company_id` is automatically set from the authenticated token.
+
+**Request Body:**
+
+```json
+{
+    "code": "BHB-001",
+    "name": "Bhubaneswar Head Office",
+    "email": "bhubaneswar@example.com",
+    "phone": "9876543210",
+    "manager_user_id": null,
+    "address_line1": "Plot 12, Saheed Nagar",
+    "address_line2": null,
+    "city": "Bhubaneswar",
+    "state": "Odisha",
+    "country": "India",
+    "postal_code": "751007",
+    "google_map_link": "https://maps.google.com/?q=20.2961,85.8245",
+    "is_head_office": true,
+    "is_active": true
+}
+```
+
+**Validation Rules:**
+
+| Field             | Rules                                   |
+|-------------------|-----------------------------------------|
+| `code`            | required, string, max:50, unique per company |
+| `name`            | required, string, max:150               |
+| `email`           | nullable, email, max:150                |
+| `phone`           | nullable, string, max:30                |
+| `manager_user_id` | nullable, integer                       |
+| `address_line1`   | nullable, string, max:255               |
+| `address_line2`   | nullable, string, max:255               |
+| `city`            | nullable, string, max:120               |
+| `state`           | nullable, string, max:120               |
+| `country`         | nullable, string, max:120               |
+| `postal_code`     | nullable, string, max:30                |
+| `google_map_link` | nullable, url                           |
+| `is_head_office`  | boolean                                 |
+| `is_active`       | boolean                                 |
+
+**Success Response (201):**
+
+```json
+{
+    "success": true,
+    "message": "Branch created successfully.",
+    "data": {
+        "id": 1,
+        "company_id": 3,
+        "code": "BHB-001",
+        "name": "Bhubaneswar Head Office",
+        "slug": "bhubaneswar-head-office",
+        "email": "bhubaneswar@example.com",
+        "phone": "9876543210",
+        "manager_user_id": null,
+        "address_line1": "Plot 12, Saheed Nagar",
+        "address_line2": null,
+        "city": "Bhubaneswar",
+        "state": "Odisha",
+        "country": "India",
+        "postal_code": "751007",
+        "google_map_link": "https://maps.google.com/?q=20.2961,85.8245",
+        "is_head_office": true,
+        "is_active": true,
+        "created_at": "2026-03-10 09:28:00",
+        "updated_at": "2026-03-10 09:28:00"
+    }
+}
+```
+
+**Validation Error (422):**
+
+```json
+{
+    "success": false,
+    "message": "Validation error.",
+    "errors": {
+        "code": ["This branch code already exists in your company."],
+        "name": ["Branch name is required."]
+    }
+}
+```
+
+---
+
+#### `GET /api/company/branches/{slug}`
+
+Get a single branch by slug (scoped to the authenticated company).
+
+**Example:** `GET /api/company/branches/bhubaneswar-head-office`
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Branch retrieved successfully.",
+    "data": {
+        "id": 1,
+        "company_id": 3,
+        "code": "BHB-001",
+        "name": "Bhubaneswar Head Office",
+        "slug": "bhubaneswar-head-office",
+        ...
+    }
+}
+```
+
+**Not Found (404):**
+
+```json
+{
+    "success": false,
+    "message": "Branch not found."
+}
+```
+
+---
+
+#### `PUT /api/company/branches/{slug}`
+
+Update an existing branch by slug.
+
+> All fields are **optional** — only send what you want to change.
+> If `name` is changed, the **slug is automatically regenerated** with uniqueness guaranteed.
+
+**Example:** `PUT /api/company/branches/bhubaneswar-head-office`
+
+**Request Body (partial update):**
+
+```json
+{
+    "name": "Bhubaneswar Main Office",
+    "phone": "9123456789",
+    "is_active": false
+}
+```
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Branch updated successfully.",
+    "data": {
+        "id": 1,
+        "company_id": 3,
+        "code": "BHB-001",
+        "name": "Bhubaneswar Main Office",
+        "slug": "bhubaneswar-main-office",
+        "phone": "9123456789",
+        "is_active": false,
+        ...
+    }
+}
+```
+
+---
+
+#### `DELETE /api/company/branches/{slug}`
+
+Delete a branch by slug (scoped to the authenticated company).
+
+**Example:** `DELETE /api/company/branches/bhubaneswar-head-office`
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Branch deleted successfully."
+}
+```
+
+**Not Found (404):**
+
+```json
+{
+    "success": false,
+    "message": "Branch not found."
+}
+```
+
+---
+
+### 🧩 Protected Routes (Company User — Feature Management)
+*(Require Company User Sanctum Token only)*
+
+> Features are **global** (not company-scoped). Any authenticated company user can manage features.  
+> **System features (`is_system = true`) cannot be deleted.**
+
+---
+
+#### `GET /api/company/features`
+
+List all features ordered by `sort_order`, with optional search and filter.
+
+**Query Parameters:**
+
+| Parameter   | Type    | Description                            |
+|-------------|---------|----------------------------------------|
+| `search`    | string  | Search by name, code, category         |
+| `is_active` | boolean | Filter: `1` (active), `0` (inactive)   |
+
+**Examples:**
+
+```
+GET /api/company/features
+GET /api/company/features?search=location
+GET /api/company/features?is_active=1
+```
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Features retrieved successfully.",
+    "data": [
+        {
+            "id": 1,
+            "code": "LIVE_LOCATION",
+            "name": "Live Location Tracking",
+            "category": "Tracking",
+            "description": "Track user location in real time.",
+            "slug": "live-location-tracking",
+            "icon": "map-pin",
+            "sort_order": 1,
+            "is_system": false,
+            "is_active": true,
+            "created_at": "2026-03-10 10:11:00",
+            "updated_at": "2026-03-10 10:11:00"
+        }
+    ]
+}
+```
+
+---
+
+#### `POST /api/company/features`
+
+Create a new feature. **Slug is auto-generated from name.**
+
+**Request Body:**
+
+```json
+{
+    "code": "LIVE_LOCATION",
+    "name": "Live Location Tracking",
+    "category": "Tracking",
+    "description": "Track user location in real time.",
+    "icon": "map-pin",
+    "sort_order": 1,
+    "is_system": false,
+    "is_active": true
+}
+```
+
+**Validation Rules:**
+
+| Field         | Rules                                      |
+|---------------|--------------------------------------------|
+| `code`        | required, string, max:80, unique:features  |
+| `name`        | required, string, max:150                  |
+| `category`    | required, string, max:80                   |
+| `description` | nullable, string                           |
+| `icon`        | nullable, string, max:80                   |
+| `sort_order`  | nullable, integer                          |
+| `is_system`   | boolean                                    |
+| `is_active`   | boolean                                    |
+
+**Success Response (201):**
+
+```json
+{
+    "success": true,
+    "message": "Feature created successfully.",
+    "data": {
+        "id": 1,
+        "code": "LIVE_LOCATION",
+        "name": "Live Location Tracking",
+        "category": "Tracking",
+        "description": "Track user location in real time.",
+        "slug": "live-location-tracking",
+        "icon": "map-pin",
+        "sort_order": 1,
+        "is_system": false,
+        "is_active": true,
+        "created_at": "2026-03-10 10:11:00",
+        "updated_at": "2026-03-10 10:11:00"
+    }
+}
+```
+
+**Validation Error (422):**
+
+```json
+{
+    "success": false,
+    "message": "Validation error.",
+    "errors": {
+        "code": ["This feature code already exists."],
+        "name": ["Feature name is required."]
+    }
+}
+```
+
+---
+
+#### `GET /api/company/features/{slug}`
+
+Get a single feature by slug.
+
+**Example:** `GET /api/company/features/live-location-tracking`
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Feature retrieved successfully.",
+    "data": {
+        "id": 1,
+        "code": "LIVE_LOCATION",
+        "name": "Live Location Tracking",
+        "slug": "live-location-tracking",
+        ...
+    }
+}
+```
+
+**Not Found (404):**
+
+```json
+{
+    "success": false,
+    "message": "Feature not found."
+}
+```
+
+---
+
+#### `PUT /api/company/features/{slug}`
+
+Update an existing feature by slug. All fields are optional.
+
+> If `name` is changed, the **slug is automatically regenerated**.
+
+**Example:** `PUT /api/company/features/live-location-tracking`
+
+**Request Body (partial update):**
+
+```json
+{
+    "name": "Real-Time Location Tracking",
+    "sort_order": 2,
+    "is_active": false
+}
+```
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Feature updated successfully.",
+    "data": {
+        "id": 1,
+        "code": "LIVE_LOCATION",
+        "name": "Real-Time Location Tracking",
+        "slug": "real-time-location-tracking",
+        "sort_order": 2,
+        "is_active": false,
+        ...
+    }
+}
+```
+
+---
+
+#### `DELETE /api/company/features/{slug}`
+
+Delete a feature by slug.
+
+> ⚠️ **System features (`is_system = true`) cannot be deleted.** Returns `403 Forbidden`.
+
+**Example:** `DELETE /api/company/features/live-location-tracking`
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Feature deleted successfully."
+}
+```
+
+**System Feature Error (403):**
+
+```json
+{
+    "success": false,
+    "message": "System features cannot be deleted."
+}
+```
+
+**Not Found (404):**
+
+```json
+{
+    "success": false,
+    "message": "Feature not found."
+}
+```
+
+---
+
+### 🏢 Protected Routes (Company User — Department Management)
+*(Require Company User Sanctum Token only)*
+
+> All Department routes are **company-scoped**. A company user can only access departments that belong to their own company.
+> `company_id` and `created_by` are **automatically set** from the authenticated token.
+> **System-default departments (`is_system_default = true`) cannot be deleted.**
+
+---
+
+#### `GET /api/company/departments`
+
+List all departments for the authenticated company, ordered by `level_no` then `name`.
+
+**Query Parameters:**
+
+| Parameter   | Type    | Description                          |
+|-------------|---------|--------------------------------------|
+| `search`    | string  | Search by name, code                 |
+| `is_active` | boolean | Filter: `1` (active), `0` (inactive) |
+
+**Examples:**
+
+```
+GET /api/company/departments
+GET /api/company/departments?search=human+resource
+GET /api/company/departments?is_active=1
+```
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Departments retrieved successfully.",
+    "data": [
+        {
+            "id": 1,
+            "company_id": 3,
+            "branch_id": 2,
+            "slug": "human-resource-department",
+            "parent_department_id": null,
+            "code": "HR-001",
+            "name": "Human Resource Department",
+            "description": "Manages all HR activities.",
+            "head_user_id": 5,
+            "level_no": 1,
+            "reports_to_department_id": null,
+            "approval_mode": "hierarchical",
+            "escalation_mode": "full_chain",
+            "can_create_tasks": true,
+            "can_receive_tasks": true,
+            "is_system_default": false,
+            "is_active": true,
+            "created_by": 1,
+            "created_at": "2026-03-10 10:43:00",
+            "updated_at": "2026-03-10 10:43:00"
+        }
+    ]
+}
+```
+
+---
+
+#### `POST /api/company/departments`
+
+Create a new department. **Slug is auto-generated from name.** `company_id` and `created_by` are set automatically.
+
+**Request Body:**
+
+```json
+{
+    "code": "HR-001",
+    "name": "Human Resource Department",
+    "branch_id": 2,
+    "parent_department_id": null,
+    "reports_to_department_id": null,
+    "description": "Manages all HR activities.",
+    "head_user_id": 5,
+    "level_no": 1,
+    "approval_mode": "hierarchical",
+    "escalation_mode": "full_chain",
+    "can_create_tasks": true,
+    "can_receive_tasks": true,
+    "is_active": true
+}
+```
+
+**Validation Rules:**
+
+| Field                     | Rules                                             |
+|---------------------------|---------------------------------------------------|
+| `code`                    | required, string, max:50, unique per company      |
+| `name`                    | required, string, max:150                         |
+| `branch_id`               | nullable, exists:branches,id                      |
+| `parent_department_id`    | nullable, exists:departments,id                   |
+| `reports_to_department_id`| nullable, exists:departments,id                   |
+| `description`             | nullable, string                                  |
+| `head_user_id`            | nullable, integer                                 |
+| `level_no`                | nullable, integer, min:1                          |
+| `approval_mode`           | in: single, multi, hierarchical                   |
+| `escalation_mode`         | in: none, manager_to_ceo, full_chain, custom      |
+| `can_create_tasks`        | boolean                                           |
+| `can_receive_tasks`       | boolean                                           |
+| `is_active`               | boolean                                           |
+
+**Success Response (201):**
+
+```json
+{
+    "success": true,
+    "message": "Department created successfully.",
+    "data": {
+        "id": 1,
+        "company_id": 3,
+        "branch_id": 2,
+        "slug": "human-resource-department",
+        "code": "HR-001",
+        "name": "Human Resource Department",
+        ...
+    }
+}
+```
+
+**Validation Error (422):**
+
+```json
+{
+    "success": false,
+    "message": "Validation error.",
+    "errors": {
+        "code": ["This department code already exists in your company."],
+        "approval_mode": ["Approval mode must be: single, multi, or hierarchical."]
+    }
+}
+```
+
+---
+
+#### `GET /api/company/departments/{slug}`
+
+Get a single department by slug (scoped to the authenticated company).
+
+**Example:** `GET /api/company/departments/human-resource-department`
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Department retrieved successfully.",
+    "data": {
+        "id": 1,
+        "code": "HR-001",
+        "name": "Human Resource Department",
+        "slug": "human-resource-department",
+        ...
+    }
+}
+```
+
+**Not Found (404):**
+
+```json
+{
+    "success": false,
+    "message": "Department not found."
+}
+```
+
+---
+
+#### `PUT /api/company/departments/{slug}`
+
+Update an existing department by slug. All fields are optional.
+
+> If `name` changes, the **slug is automatically regenerated**.
+
+**Example:** `PUT /api/company/departments/human-resource-department`
+
+**Request Body (partial update):**
+
+```json
+{
+    "name": "HR & Administration",
+    "approval_mode": "multi",
+    "is_active": false
+}
+```
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Department updated successfully.",
+    "data": {
+        "id": 1,
+        "name": "HR & Administration",
+        "slug": "hr-administration",
+        "approval_mode": "multi",
+        "is_active": false,
+        ...
+    }
+}
+```
+
+---
+
+#### `DELETE /api/company/departments/{slug}`
+
+Delete a department by slug.
+
+> ⚠️ **System-default departments (`is_system_default = true`) cannot be deleted.** Returns `403 Forbidden`.
+
+**Example:** `DELETE /api/company/departments/human-resource-department`
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Department deleted successfully."
+}
+```
+
+**System Default Error (403):**
+
+```json
+{
+    "success": false,
+    "message": "System default departments cannot be deleted."
+}
+```
+
+---
+
+### 🔗 Protected Routes (Company User — Department Features)
+*(Require Company User Sanctum Token only)*
+
+> Department Feature routes are **company-scoped via the department**. The department must belong to the authenticated company.
+> `assigned_by` is **automatically set** from the auth token.
+> A feature can only be assigned to a department **once** (unique per department + feature).
+
+---
+
+#### `GET /api/company/department-features`
+
+List all department-feature mappings for the authenticated company.
+
+**Query Parameters:**
+
+| Parameter | Type   | Description                               |
+|-----------|--------|-------------------------------------------|
+| `search`  | string | Search by department name or feature name |
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Department features retrieved successfully.",
+    "data": [
+        {
+            "id": 1,
+            "slug": "hr-department-employee-management",
+            "department_id": 1,
+            "department": {
+                "id": 1,
+                "name": "Human Resource Department",
+                "slug": "hr-department",
+                "code": "HR-001"
+            },
+            "feature_id": 3,
+            "feature": {
+                "id": 3,
+                "name": "Employee Management",
+                "slug": "employee-management",
+                "code": "EMP_MGMT",
+                "category": "HR"
+            },
+            "access_level": "full",
+            "is_enabled": true,
+            "assigned_by": 1,
+            "assigned_at": "2026-03-10 11:59:00",
+            "created_at": "2026-03-10 11:59:00",
+            "updated_at": "2026-03-10 11:59:00"
+        }
+    ]
+}
+```
+
+---
+
+#### `POST /api/company/department-features`
+
+Assign a feature to a department. **Slug is auto-generated** as `{department-slug}-{feature-slug}`.
+
+> Returns `403` if the department doesn’t belong to the authenticated company.
+> Returns `409 Conflict` if the feature is already assigned to that department.
+
+**Request Body:**
+
+```json
+{
+    "department_id": 1,
+    "feature_id": 3,
+    "access_level": "full",
+    "is_enabled": true
+}
+```
+
+**Validation Rules:**
+
+| Field           | Rules                                                      |
+|-----------------|------------------------------------------------------------|
+| `department_id` | required, exists:departments,id                            |
+| `feature_id`    | required, exists:features,id                               |
+| `access_level`  | in: view, create, edit, delete, approve, full              |
+| `is_enabled`    | boolean                                                    |
+
+**Success Response (201):**
+
+```json
+{
+    "success": true,
+    "message": "Feature assigned to department successfully.",
+    "data": {
+        "id": 1,
+        "slug": "hr-department-employee-management",
+        "department_id": 1,
+        "department": { ... },
+        "feature_id": 3,
+        "feature": { ... },
+        "access_level": "full",
+        "is_enabled": true,
+        "assigned_by": 1,
+        "assigned_at": "2026-03-10 11:59:00"
+    }
+}
+```
+
+**Conflict Error (409):**
+
+```json
+{
+    "success": false,
+    "message": "This feature is already assigned to the selected department."
+}
+```
+
+**Company Mismatch Error (403):**
+
+```json
+{
+    "success": false,
+    "message": "The selected department does not belong to your company."
+}
+```
+
+---
+
+#### `GET /api/company/department-features/{slug}`
+
+Get a single department-feature mapping by slug.
+
+**Example:** `GET /api/company/department-features/hr-department-employee-management`
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Department feature retrieved successfully.",
+    "data": { ... }
+}
+```
+
+---
+
+#### `PUT /api/company/department-features/{slug}`
+
+Update the access level or enable/disable a department-feature mapping.
+
+> `department_id` and `feature_id` **cannot be changed** after assignment.
+
+**Request Body:**
+
+```json
+{
+    "access_level": "edit",
+    "is_enabled": false
+}
+```
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Department feature updated successfully.",
+    "data": {
+        "slug": "hr-department-employee-management",
+        "access_level": "edit",
+        "is_enabled": false,
+        ...
+    }
+}
+```
+
+---
+
+#### `DELETE /api/company/department-features/{slug}`
+
+Remove a feature from a department.
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Feature removed from department successfully."
+}
+```
+
+---
+
 ## 🔢 Slug Generation Rules
 
-Slugs are **automatically generated** from the admin's name:
+Slugs are **automatically generated** from the resource name:
 
-| Name | Generated Slug |
-|------|----------------|
-| John Doe | `john-doe` |
-| John Doe (exists) | `john-doe-2` |
-| John Doe (both exist) | `john-doe-3` |
+| Resource | Example Name | Generated Slug |
+|----------|------|----------------|
+| Admin | John Doe | `john-doe` |
+| Branch | Bhubaneswar Head Office | `bhubaneswar-head-office` |
+| Feature | Live Location Tracking | `live-location-tracking` |
+| Department | Human Resource Department | `human-resource-department` |
+| Dept. Feature | HR Dept + Employee Management | `hr-department-employee-management` |
+| Dept. Feature (exists) | same pair | `hr-department-employee-management-2` |
 
 ---
 
@@ -633,30 +1563,54 @@ Import `postman_collection.json` from the project root into Postman.
 ```
 app/
 ├── Exceptions/
-│   └── Handler.php                    # JSON error handling for all API routes
+│   └── Handler.php                       # JSON error handling for all API routes
 ├── Http/
 │   ├── Controllers/API/
-│   │   ├── AdminAuthController.php    # Login, logout, profile
-│   │   └── AdminController.php        # Admin CRUD + restore
-│   ├── Requests/Admin/
-│   │   ├── CreateAdminRequest.php
-│   │   ├── UpdateAdminRequest.php
-│   │   ├── LoginRequest.php
-│   │   └── UpdateProfileRequest.php
+│   │   ├── AdminAuthController.php       # Admin login, logout, profile
+│   │   ├── AdminController.php           # Admin CRUD + restore
+│   │   ├── AuthController.php            # Company user register/login/logout
+│   │   ├── BranchController.php          # Branch CRUD (company scoped)
+│   │   └── CompanyController.php         # Company CRUD
+│   ├── Requests/
+│   │   ├── Admin/
+│   │   │   ├── CreateAdminRequest.php
+│   │   │   ├── UpdateAdminRequest.php
+│   │   │   ├── LoginRequest.php
+│   │   │   └── UpdateProfileRequest.php
+│   │   ├── Branch/
+│   │   │   ├── StoreBranchRequest.php
+│   │   │   └── UpdateBranchRequest.php
+│   │   ├── Auth/
+│   │   │   └── LoginRequest.php
+│   │   └── Company/
+│   │       ├── StoreCompanyRequest.php
+│   │       └── UpdateCompanyRequest.php
 │   └── Resources/
-│       └── AdminResource.php
+│       ├── AdminResource.php
+│       ├── BranchResource.php
+│       └── CompanyResource.php
 ├── Models/
-│   └── Admin.php
+│   ├── Admin.php
+│   ├── Branch.php
+│   ├── Company.php
+│   └── User.php
 ├── Repositories/
-│   └── AdminRepository.php
+│   ├── AdminRepository.php
+│   ├── BranchRepository.php
+│   └── CompanyRepository.php
 ├── Services/
-│   └── AdminService.php
+│   ├── AdminService.php
+│   ├── AuthService.php
+│   ├── BranchService.php
+│   └── CompanyService.php
 └── Traits/
     └── ApiResponseTrait.php
 
 database/
-├── factories/AdminFactory.php
-├── migrations/*_create_admins_table.php
+├── migrations/
+│   ├── *_create_admins_table.php
+│   ├── *_create_companies_table.php
+│   └── *_create_branches_table.php
 └── seeders/
     ├── AdminSeeder.php
     └── DatabaseSeeder.php
@@ -664,10 +1618,8 @@ database/
 routes/
 └── api.php
 
-tests/Feature/
-└── AdminApiTest.php
-
 postman_collection.json
+company_postman_collection.json
 ```
 
 ---
