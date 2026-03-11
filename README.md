@@ -2,7 +2,7 @@
 
 A **production-ready Business Management REST API** built with **Laravel** and **Laravel Sanctum**, following the **Repository + Service Pattern** with full API Resource transformation and FormRequest validation.
 
-Modules covered: **Admin Management**, **Company Management**, **Branch Management**, **Feature Management**, **Department Management**, **Department Features**, **System Settings**.
+Modules covered: **Admin Management**, **Company Management**, **Branch Management**, **Feature Management**, **Department Management**, **Department Features**, **System Settings**, **Roles**, **Branch Users**.
 
 ---
 
@@ -23,9 +23,9 @@ Modules covered: **Admin Management**, **Company Management**, **Branch Manageme
 The API maintains two completely isolated classes of users, each with their own dedicated authentication guards via Laravel Sanctum:
 
 1. **Admins:** Authenticate via `/api/admin/login` (default `web`/`sanctum` guard) to access `/api/admins/*` and `/api/companies/*` routes.
-2. **Company Users:** Authenticate via `/api/login` (custom `company` guard) to access `/api/companies/*` and `/api/company/branches/*` routes.
+2. **Company Users:** Authenticate via `/api/login` (custom `company` guard) to access `/api/companies/*` and all `/api/company/*` routes including branches, departments, roles, branch users, and more.
 
-Both **Admins** and **Company Users** are authorized to manage companies. Company Users can only manage branches that **belong to their own company**.
+Both **Admins** and **Company Users** are authorized to manage companies. Company Users can only manage resources that **belong to their own company**.
 
 ---
 
@@ -1677,6 +1677,511 @@ Delete a system setting.
 
 ---
 
+### 👤 Protected Routes (Company User — Role Management)
+*(Require Company User Sanctum Token only)*
+
+> Roles are **global** (not company-scoped). Any authenticated company user can manage roles.
+> **Slug is auto-generated from name.** Duplicate names get `-2`, `-3` suffixes.
+
+---
+
+#### `GET /api/company/roles`
+
+List all roles with **pagination**, **search**, and **status filter**.
+
+**Query Parameters:**
+
+| Parameter   | Type    | Description                            |
+|-------------|---------|----------------------------------------|
+| `search`    | string  | Search by name or description          |
+| `is_active` | boolean | Filter: `1` (active), `0` (inactive)   |
+| `per_page`  | int     | Items per page (default: 10)           |
+
+**Examples:**
+
+```
+GET /api/company/roles
+GET /api/company/roles?search=manager
+GET /api/company/roles?is_active=1&per_page=5
+```
+
+**Paginated Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Roles retrieved successfully.",
+    "data": [
+        {
+            "id": 1,
+            "name": "Branch Manager",
+            "slug": "branch-manager",
+            "description": "Oversees daily branch operations.",
+            "is_active": true,
+            "created_at": "2026-03-11 09:00:00",
+            "updated_at": "2026-03-11 09:00:00"
+        }
+    ],
+    "meta": {
+        "current_page": 1,
+        "per_page": 10,
+        "total": 3,
+        "last_page": 1,
+        "from": 1,
+        "to": 3
+    },
+    "links": {
+        "first": "http://localhost:8000/api/company/roles?page=1",
+        "last": "http://localhost:8000/api/company/roles?page=1",
+        "prev": null,
+        "next": null
+    }
+}
+```
+
+---
+
+#### `POST /api/company/roles`
+
+Create a new role. **Slug is auto-generated from name.**
+
+**Request Body:**
+
+```json
+{
+    "name": "Branch Manager",
+    "description": "Oversees daily branch operations.",
+    "is_active": true
+}
+```
+
+**Validation Rules:**
+
+| Field         | Rules                              |
+|---------------|------------------------------------|
+| `name`        | required, string, max:255          |
+| `description` | nullable, string, max:1000         |
+| `is_active`   | sometimes, boolean                 |
+
+**Success Response (201):**
+
+```json
+{
+    "success": true,
+    "message": "Role created successfully.",
+    "data": {
+        "id": 1,
+        "name": "Branch Manager",
+        "slug": "branch-manager",
+        "description": "Oversees daily branch operations.",
+        "is_active": true,
+        "created_at": "2026-03-11 09:00:00",
+        "updated_at": "2026-03-11 09:00:00"
+    }
+}
+```
+
+---
+
+#### `GET /api/company/roles/{slug}`
+
+Get a single role by slug.
+
+**Example:** `GET /api/company/roles/branch-manager`
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Role retrieved successfully.",
+    "data": {
+        "id": 1,
+        "name": "Branch Manager",
+        "slug": "branch-manager",
+        "description": "Oversees daily branch operations.",
+        "is_active": true
+    }
+}
+```
+
+**Not Found (404):**
+
+```json
+{
+    "success": false,
+    "message": "Role not found."
+}
+```
+
+---
+
+#### `PUT /api/company/roles/{slug}`
+
+Update an existing role. All fields are optional.
+
+> If `name` is changed, the **slug is automatically regenerated**.
+
+**Request Body (partial update):**
+
+```json
+{
+    "name": "Senior Branch Manager",
+    "is_active": false
+}
+```
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Role updated successfully.",
+    "data": {
+        "id": 1,
+        "name": "Senior Branch Manager",
+        "slug": "senior-branch-manager",
+        "is_active": false
+    }
+}
+```
+
+---
+
+#### `DELETE /api/company/roles/{slug}`
+
+Delete a role by slug.
+
+**Example:** `DELETE /api/company/roles/branch-manager`
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Role deleted successfully."
+}
+```
+
+---
+
+### 👥 Protected Routes (Company User — Branch User Management)
+*(Require Company User Sanctum Token only)*
+
+> Branch Users are **company-scoped**. A company user can only access branch users that belong to their own company.
+> `company_id` and `created_by` are **automatically set** from the auth token.
+> Branch Users are **soft-deleted** (`is_delete = true`) — records are retained for audit.
+
+---
+
+#### `GET /api/company/branch-users`
+
+List all branch users for the authenticated company, with **pagination**, **search**, and **status filter**.
+
+**Query Parameters:**
+
+| Parameter   | Type    | Description                                  |
+|-------------|---------|----------------------------------------------|
+| `search`    | string  | Search by name, email, or phone              |
+| `is_active` | boolean | Filter: `1` (active), `0` (inactive)         |
+| `per_page`  | int     | Items per page (default: 10)                 |
+
+**Examples:**
+
+```
+GET /api/company/branch-users
+GET /api/company/branch-users?search=john
+GET /api/company/branch-users?is_active=1&per_page=5
+```
+
+**Paginated Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Branch users retrieved successfully.",
+    "data": [
+        {
+            "id": 1,
+            "company_id": 3,
+            "branch": {
+                "id": 1,
+                "name": "Bhubaneswar Head Office",
+                "slug": "bhubaneswar-head-office"
+            },
+            "role": {
+                "id": 1,
+                "name": "Branch Manager",
+                "slug": "branch-manager"
+            },
+            "name": "John Doe",
+            "email": "john@example.com",
+            "phone": "9876543210",
+            "slug": "john-doe",
+            "is_active": true,
+            "is_delete": false,
+            "created_by": 1,
+            "created_at": "2026-03-11 10:00:00",
+            "updated_at": "2026-03-11 10:00:00"
+        }
+    ],
+    "meta": {
+        "current_page": 1,
+        "per_page": 10,
+        "total": 5,
+        "last_page": 1,
+        "from": 1,
+        "to": 5
+    },
+    "links": {
+        "first": "http://localhost:8000/api/company/branch-users?page=1",
+        "last": "http://localhost:8000/api/company/branch-users?page=1",
+        "prev": null,
+        "next": null
+    }
+}
+```
+
+---
+
+#### `POST /api/company/branch-users`
+
+Create a new branch user. **Slug is auto-generated from name.** `company_id` and `created_by` are set automatically.
+
+> Returns `403` if the selected `branch_id` does not belong to the authenticated company.
+
+**Request Body:**
+
+```json
+{
+    "branch_id": 1,
+    "role_id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "secret123",
+    "password_confirmation": "secret123",
+    "phone": "9876543210",
+    "is_active": true
+}
+```
+
+**Validation Rules:**
+
+| Field                  | Rules                                          |
+|------------------------|------------------------------------------------|
+| `branch_id`            | required, integer, exists:branches,id          |
+| `role_id`              | required, integer, exists:roles,id             |
+| `name`                 | required, string, max:255                      |
+| `email`                | required, email, max:255, unique:branch_users  |
+| `password`             | required, string, min:6, confirmed             |
+| `password_confirmation`| required (must match `password`)               |
+| `phone`                | nullable, string, max:20                       |
+| `is_active`            | sometimes, boolean                             |
+
+**Success Response (201):**
+
+```json
+{
+    "success": true,
+    "message": "Branch user created successfully.",
+    "data": {
+        "id": 1,
+        "company_id": 3,
+        "branch": {
+            "id": 1,
+            "name": "Bhubaneswar Head Office",
+            "slug": "bhubaneswar-head-office"
+        },
+        "role": {
+            "id": 1,
+            "name": "Branch Manager",
+            "slug": "branch-manager"
+        },
+        "name": "John Doe",
+        "email": "john@example.com",
+        "phone": "9876543210",
+        "slug": "john-doe",
+        "is_active": true,
+        "is_delete": false,
+        "created_by": 1,
+        "created_at": "2026-03-11 10:00:00",
+        "updated_at": "2026-03-11 10:00:00"
+    }
+}
+```
+
+**Branch Mismatch Error (403):**
+
+```json
+{
+    "success": false,
+    "message": "The selected branch does not belong to your company."
+}
+```
+
+**Validation Error (422):**
+
+```json
+{
+    "success": false,
+    "message": "The given data was invalid.",
+    "errors": {
+        "email": ["A branch user with this email already exists."],
+        "password": ["Password confirmation does not match."]
+    }
+}
+```
+
+---
+
+#### `GET /api/company/branch-users/{slug}`
+
+Get a single branch user by slug (scoped to the authenticated company).
+
+**Example:** `GET /api/company/branch-users/john-doe`
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Branch user retrieved successfully.",
+    "data": {
+        "id": 1,
+        "company_id": 3,
+        "branch": { "id": 1, "name": "Bhubaneswar Head Office", "slug": "bhubaneswar-head-office" },
+        "role": { "id": 1, "name": "Branch Manager", "slug": "branch-manager" },
+        "name": "John Doe",
+        "email": "john@example.com",
+        "slug": "john-doe",
+        ...
+    }
+}
+```
+
+**Not Found (404):**
+
+```json
+{
+    "success": false,
+    "message": "Branch user not found."
+}
+```
+
+---
+
+#### `PUT /api/company/branch-users/{slug}`
+
+Update an existing branch user by slug. All fields are optional.
+
+> If `name` is changed, the **slug is automatically regenerated**.
+> If `branch_id` is changed, the branch must still belong to the authenticated company.
+
+**Request Body (partial update):**
+
+```json
+{
+    "name": "John Smith",
+    "phone": "9123456789",
+    "role_id": 2,
+    "is_active": false
+}
+```
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Branch user updated successfully.",
+    "data": {
+        "id": 1,
+        "name": "John Smith",
+        "slug": "john-smith",
+        "is_active": false,
+        ...
+    }
+}
+```
+
+---
+
+#### `DELETE /api/company/branch-users/{slug}`
+
+Soft-delete a branch user (sets `is_delete = true`). The record is retained for audit purposes.
+
+**Example:** `DELETE /api/company/branch-users/john-doe`
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Branch user deleted successfully."
+}
+```
+
+---
+
+#### `POST /api/company/branch-users/{slug}/change-password`
+
+Change or reset a branch user's password. Used by the company owner to manage branch user credentials.
+
+> `current_password` is **optional** — omit it for an admin password reset.
+> If `current_password` is provided, it is verified against the stored hash before updating.
+
+**Example:** `POST /api/company/branch-users/john-doe/change-password`
+
+**Request Body:**
+
+```json
+{
+    "current_password": "old_password",
+    "new_password": "new_secure_pass",
+    "confirm_password": "new_secure_pass"
+}
+```
+
+**Validation Rules:**
+
+| Field              | Rules                                          |
+|--------------------|------------------------------------------------|
+| `current_password` | nullable, string (verified if provided)        |
+| `new_password`     | required, string, min:6                        |
+| `confirm_password` | required, string, must match `new_password`    |
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Password updated successfully."
+}
+```
+
+**Wrong Current Password (422):**
+
+```json
+{
+    "success": false,
+    "message": "The current password is incorrect."
+}
+```
+
+**Validation Error (422):**
+
+```json
+{
+    "success": false,
+    "message": "The given data was invalid.",
+    "errors": {
+        "confirm_password": ["The password confirmation does not match the new password."]
+    }
+}
+```
+
+---
+
 ## 🔢 Slug Generation Rules
 
 Slugs are **automatically generated** from the resource name:
@@ -1690,6 +2195,8 @@ Slugs are **automatically generated** from the resource name:
 | Dept. Feature | hr-department + employee-management | `hr-department-employee-management` |
 | System Setting | group=`company`, key=`timezone` | `company-timezone` |
 | System Setting (exists) | same group + key | `company-timezone-2` |
+| Role | Branch Manager | `branch-manager` |
+| Branch User | John Doe | `john-doe` |
 
 ---
 
@@ -1755,46 +2262,82 @@ Import `postman_collection.json` from the project root into Postman.
 ```
 app/
 ├── Exceptions/
-│   └── Handler.php                       # JSON error handling for all API routes
+│   └── Handler.php                              # JSON error handling for all API routes
 ├── Http/
 │   ├── Controllers/API/
-│   │   ├── AdminAuthController.php       # Admin login, logout, profile
-│   │   ├── AdminController.php           # Admin CRUD + restore
-│   │   ├── AuthController.php            # Company user register/login/logout
-│   │   ├── BranchController.php          # Branch CRUD (company scoped)
-│   │   └── CompanyController.php         # Company CRUD
+│   │   ├── AdminAuthController.php              # Admin login, logout, profile
+│   │   ├── AdminController.php                  # Admin CRUD + restore
+│   │   ├── AuthController.php                   # Company user register/login/logout
+│   │   ├── BranchController.php                 # Branch CRUD (company scoped)
+│   │   ├── BranchUserController.php             # Branch user CRUD + change-password
+│   │   ├── CompanyController.php                # Company CRUD
+│   │   ├── DepartmentController.php             # Department CRUD (company scoped)
+│   │   ├── DepartmentFeatureController.php      # Department-Feature mappings
+│   │   ├── FeatureController.php                # Feature CRUD (global)
+│   │   ├── RoleController.php                   # Role CRUD (global)
+│   │   └── SystemSettingController.php          # System settings (company scoped)
 │   ├── Requests/
 │   │   ├── Admin/
 │   │   │   ├── CreateAdminRequest.php
 │   │   │   ├── UpdateAdminRequest.php
 │   │   │   ├── LoginRequest.php
 │   │   │   └── UpdateProfileRequest.php
+│   │   ├── Auth/
+│   │   │   └── LoginRequest.php
 │   │   ├── Branch/
 │   │   │   ├── StoreBranchRequest.php
 │   │   │   └── UpdateBranchRequest.php
-│   │   ├── Auth/
-│   │   │   └── LoginRequest.php
-│   │   └── Company/
-│   │       ├── StoreCompanyRequest.php
-│   │       └── UpdateCompanyRequest.php
+│   │   ├── BranchUser/
+│   │   │   ├── StoreBranchUserRequest.php
+│   │   │   ├── UpdateBranchUserRequest.php
+│   │   │   └── ChangeBranchUserPasswordRequest.php
+│   │   ├── Company/
+│   │   │   ├── StoreCompanyRequest.php
+│   │   │   └── UpdateCompanyRequest.php
+│   │   └── Role/
+│   │       ├── StoreRoleRequest.php
+│   │       └── UpdateRoleRequest.php
 │   └── Resources/
 │       ├── AdminResource.php
 │       ├── BranchResource.php
-│       └── CompanyResource.php
+│       ├── BranchUserResource.php
+│       ├── CompanyResource.php
+│       ├── DepartmentFeatureResource.php
+│       ├── DepartmentResource.php
+│       ├── FeatureResource.php
+│       ├── RoleResource.php
+│       └── SystemSettingResource.php
 ├── Models/
 │   ├── Admin.php
 │   ├── Branch.php
+│   ├── BranchUser.php
 │   ├── Company.php
+│   ├── Department.php
+│   ├── DepartmentFeature.php
+│   ├── Feature.php
+│   ├── Role.php
 │   └── User.php
 ├── Repositories/
 │   ├── AdminRepository.php
 │   ├── BranchRepository.php
-│   └── CompanyRepository.php
+│   ├── BranchUserRepository.php
+│   ├── CompanyRepository.php
+│   ├── DepartmentFeatureRepository.php
+│   ├── DepartmentRepository.php
+│   ├── FeatureRepository.php
+│   ├── RoleRepository.php
+│   └── SystemSettingRepository.php
 ├── Services/
 │   ├── AdminService.php
 │   ├── AuthService.php
 │   ├── BranchService.php
-│   └── CompanyService.php
+│   ├── BranchUserService.php
+│   ├── CompanyService.php
+│   ├── DepartmentFeatureService.php
+│   ├── DepartmentService.php
+│   ├── FeatureService.php
+│   ├── RoleService.php
+│   └── SystemSettingService.php
 └── Traits/
     └── ApiResponseTrait.php
 
@@ -1802,7 +2345,9 @@ database/
 ├── migrations/
 │   ├── *_create_admins_table.php
 │   ├── *_create_companies_table.php
-│   └── *_create_branches_table.php
+│   ├── *_create_branches_table.php
+│   ├── *_create_roles_table.php
+│   └── *_create_branch_users_table.php
 └── seeders/
     ├── AdminSeeder.php
     └── DatabaseSeeder.php

@@ -3,10 +3,12 @@
 use App\Http\Controllers\API\AdminAuthController;
 use App\Http\Controllers\API\AdminController;
 use App\Http\Controllers\API\BranchController;
+use App\Http\Controllers\API\BranchUserController;
 use App\Http\Controllers\API\CompanyController;
 use App\Http\Controllers\API\DepartmentController;
 use App\Http\Controllers\API\DepartmentFeatureController;
 use App\Http\Controllers\API\FeatureController;
+use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\SystemSettingController;
 use Illuminate\Support\Facades\Route;
 
@@ -118,6 +120,21 @@ Route::middleware('auth:sanctum,company')->group(function () {
             Route::get('/settings/{slug}', [SystemSettingController::class, 'show'])->name('settings.show');
             Route::put('/settings/{slug}', [SystemSettingController::class, 'update'])->name('settings.update');
             Route::delete('/settings/{slug}', [SystemSettingController::class, 'destroy'])->name('settings.destroy');
+
+            // Role management routes (global lookup, accessible by all company users)
+            Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
+            Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
+            Route::get('/roles/{slug}', [RoleController::class, 'show'])->name('roles.show');
+            Route::put('/roles/{slug}', [RoleController::class, 'update'])->name('roles.update');
+            Route::delete('/roles/{slug}', [RoleController::class, 'destroy'])->name('roles.destroy');
+
+            // Branch user management routes (company-scoped)
+            Route::get('/branch-users', [BranchUserController::class, 'index'])->name('branch-users.index');
+            Route::post('/branch-users', [BranchUserController::class, 'store'])->name('branch-users.store');
+            Route::get('/branch-users/{slug}', [BranchUserController::class, 'show'])->name('branch-users.show');
+            Route::put('/branch-users/{slug}', [BranchUserController::class, 'update'])->name('branch-users.update');
+            Route::delete('/branch-users/{slug}', [BranchUserController::class, 'destroy'])->name('branch-users.destroy');
+            Route::post('/branch-users/{slug}/change-password', [BranchUserController::class, 'changePassword'])->name('branch-users.change-password');
         }
     );
 });
