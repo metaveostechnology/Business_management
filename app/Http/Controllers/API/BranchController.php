@@ -24,7 +24,7 @@ class BranchController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $companyId = auth()->user()->company_id;
+            $companyId = auth()->id();
             $paginator = $this->branchService->getBranches(
                 companyId: $companyId,
                 search:    $request->query('search'),
@@ -46,7 +46,7 @@ class BranchController extends Controller
     {
         try {
             $data = $request->validated();
-            $data['company_id'] = auth()->user()->company_id;
+            $data['company_id'] = auth()->id();
             $branch = $this->branchService->createBranch($data);
             return $this->createdResponse(new BranchResource($branch), 'Branch created successfully.');
         } catch (Throwable $e) {
@@ -58,7 +58,7 @@ class BranchController extends Controller
     public function show(string $slug): JsonResponse
     {
         try {
-            $branch = $this->branchService->findBySlug($slug, auth()->user()->company_id);
+            $branch = $this->branchService->findBySlug($slug, auth()->id());
             if (!$branch) { return $this->errorResponse('Branch not found.', statusCode: 404); }
             return $this->successResponse(new BranchResource($branch), 'Branch retrieved successfully.');
         } catch (Throwable $e) {
@@ -70,7 +70,7 @@ class BranchController extends Controller
     public function update(UpdateBranchRequest $request, string $slug): JsonResponse
     {
         try {
-            $branch = $this->branchService->findBySlug($slug, auth()->user()->company_id);
+            $branch = $this->branchService->findBySlug($slug, auth()->id());
             if (!$branch) { return $this->errorResponse('Branch not found.', statusCode: 404); }
             $updated = $this->branchService->updateBranch($branch, $request->validated());
             return $this->successResponse(new BranchResource($updated), 'Branch updated successfully.');
@@ -83,7 +83,7 @@ class BranchController extends Controller
     public function destroy(string $slug): JsonResponse
     {
         try {
-            $branch = $this->branchService->findBySlug($slug, auth()->user()->company_id);
+            $branch = $this->branchService->findBySlug($slug, auth()->id());
             if (!$branch) { return $this->errorResponse('Branch not found.', statusCode: 404); }
             $this->branchService->deleteBranch($branch);
             return $this->noContentResponse('Branch deleted successfully.');

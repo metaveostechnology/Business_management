@@ -90,9 +90,8 @@ class CompanyController extends Controller
         try {
             $data = $request->validated();
 
-            // Handle logo file upload
             if ($request->hasFile('logo')) {
-                $data['logo_path'] = $request->file('logo')->store('logos', 'public');
+                $data['logo_path'] = $request->file('logo')->store('companylogo', 'public');
             }
 
             // Remove 'logo' key — model uses logo_path
@@ -139,7 +138,7 @@ class CompanyController extends Controller
                     Storage::disk('public')->delete($company->logo_path);
                 }
 
-                $data['logo_path'] = $request->file('logo')->store('logos', 'public');
+                $data['logo_path'] = $request->file('logo')->store('companylogo', 'public');
             }
 
             // Remove 'logo' key — model uses logo_path

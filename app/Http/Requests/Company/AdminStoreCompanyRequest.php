@@ -31,7 +31,7 @@ class AdminStoreCompanyRequest extends FormRequest
             'country'             => 'nullable|string|max:120',
             'postal_code'         => 'nullable|string|max:30',
             'address'             => 'nullable|string',
-            'logo'                => 'nullable|string|max:255',
+            'logo'                => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             'is_active'           => 'sometimes|boolean',
         ];
     }

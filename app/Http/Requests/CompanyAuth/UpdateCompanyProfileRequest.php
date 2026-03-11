@@ -20,7 +20,7 @@ class UpdateCompanyProfileRequest extends FormRequest
             'phone'   => 'sometimes|required|string|max:20',
             'email'   => 'sometimes|required|email|max:150|unique:companies,email,' . $companyId,
             'address' => 'nullable|string',
-            'logo'    => 'nullable|string|max:255',
+            'logo'    => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             'website' => 'nullable|url|max:200',
         ];
     }

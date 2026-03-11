@@ -27,7 +27,7 @@ class DepartmentController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $companyId   = auth()->user()->company_id;
+            $companyId   = auth()->id();
             $departments = $this->departmentService->getDepartments(
                 companyId: $companyId,
                 search:    $request->query('search'),
@@ -51,7 +51,7 @@ class DepartmentController extends Controller
     {
         try {
             $data                = $request->validated();
-            $data['company_id'] = auth()->user()->company_id;
+            $data['company_id'] = auth()->id();
             $data['created_by'] = auth()->id();
 
             $department = $this->departmentService->createDepartment($data);
@@ -72,7 +72,7 @@ class DepartmentController extends Controller
     public function show(string $slug): JsonResponse
     {
         try {
-            $department = $this->departmentService->findBySlug($slug, auth()->user()->company_id);
+            $department = $this->departmentService->findBySlug($slug, auth()->id());
 
             if (!$department) {
                 return $this->errorResponse('Department not found.', statusCode: 404);
@@ -94,7 +94,7 @@ class DepartmentController extends Controller
     public function update(UpdateDepartmentRequest $request, string $slug): JsonResponse
     {
         try {
-            $department = $this->departmentService->findBySlug($slug, auth()->user()->company_id);
+            $department = $this->departmentService->findBySlug($slug, auth()->id());
 
             if (!$department) {
                 return $this->errorResponse('Department not found.', statusCode: 404);
@@ -118,7 +118,7 @@ class DepartmentController extends Controller
     public function destroy(string $slug): JsonResponse
     {
         try {
-            $department = $this->departmentService->findBySlug($slug, auth()->user()->company_id);
+            $department = $this->departmentService->findBySlug($slug, auth()->id());
 
             if (!$department) {
                 return $this->errorResponse('Department not found.', statusCode: 404);

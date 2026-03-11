@@ -60,9 +60,14 @@ class AdminCompanyController extends Controller
         try {
             $data             = $request->validated();
             $data['slug']     = $this->generateUniqueSlug($data['name']);
+            $data['code']     = $data['code'] ?? 'CMP-' . strtoupper(Str::random(6));
             $data['password'] = Hash::make($data['password']);
 
-            if (isset($data['logo'])) {
+            if ($request->hasFile('logo')) {
+                $data['logo_path'] = $request->file('logo')->store('companylogo', 'public');
+                unset($data['logo']);
+            } elseif (isset($data['logo'])) {
+                // Support backward compatibility if someone sends a URL string
                 $data['logo_path'] = $data['logo'];
                 unset($data['logo']);
             }
@@ -119,7 +124,14 @@ class AdminCompanyController extends Controller
                 $data['password'] = Hash::make($data['password']);
             }
 
-            if (isset($data['logo'])) {
+            if ($request->hasFile('logo')) {
+                // Delete old logo
+                if ($company->logo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($company->logo_path)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($company->logo_path);
+                }
+                $data['logo_path'] = $request->file('logo')->store('companylogo', 'public');
+                unset($data['logo']);
+            } elseif (array_key_exists('logo', $data)) {
                 $data['logo_path'] = $data['logo'];
                 unset($data['logo']);
             }

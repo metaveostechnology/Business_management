@@ -26,10 +26,6 @@ Route::prefix('admin')->group(function () {
 // ── Public Routes (Company Self-Registration) ───────────────────────────────
 Route::post('/register-company', [CompanyAuthController::class, 'register'])->name('company.self.register');
 
-// ── Public Routes (Company Users — old auth, kept for backward compat) ───────
-Route::post('/register', [\App\Http\Controllers\API\AuthController::class, 'register'])->name('company.register');
-Route::post('/login', [\App\Http\Controllers\API\AuthController::class, 'login'])->name('company.login');
-
 // ── Public Routes (Company Login via companies table) ────────────────────────
 Route::post('/company/login', [CompanyAuthController::class, 'login'])->name('company.auth.login');
 
@@ -86,10 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // ── Protected Routes (Sanctum - Company Users via companies table) ───────────
 Route::middleware('auth:sanctum,company')->group(function () {
 
-    // Company User Auth routes (for old company_register-based auth)
-    Route::post('/logout', [\App\Http\Controllers\API\AuthController::class, 'logout'])->name('company.logout');
-
-    // Company profile & password (new — using companies table)
+    // Company profile & password (using companies table)
     Route::prefix('company')->group(function () {
         Route::post('/logout', [CompanyAuthController::class, 'logout'])->name('company.auth.logout');
         Route::get('/profile', [CompanyAuthController::class, 'profile'])->name('company.auth.profile');

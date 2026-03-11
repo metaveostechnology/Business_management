@@ -29,7 +29,7 @@ class DepartmentFeatureController extends Controller
     {
         try {
             $mappings = $this->service->getMappings(
-                companyId: auth()->user()->company_id,
+                companyId: auth()->id(),
                 search:    $request->query('search')
             );
 
@@ -49,7 +49,7 @@ class DepartmentFeatureController extends Controller
     public function store(StoreDepartmentFeatureRequest $request): JsonResponse
     {
         try {
-            $companyId    = auth()->user()->company_id;
+            $companyId    = auth()->id();
             $departmentId = $request->integer('department_id');
             $featureId    = $request->integer('feature_id');
 
@@ -94,7 +94,7 @@ class DepartmentFeatureController extends Controller
     public function show(string $slug): JsonResponse
     {
         try {
-            $mapping = $this->service->findBySlug($slug, auth()->user()->company_id);
+            $mapping = $this->service->findBySlug($slug, auth()->id());
 
             if (!$mapping) {
                 return $this->errorResponse('Department feature not found.', statusCode: 404);
@@ -116,7 +116,7 @@ class DepartmentFeatureController extends Controller
     public function update(UpdateDepartmentFeatureRequest $request, string $slug): JsonResponse
     {
         try {
-            $mapping = $this->service->findBySlug($slug, auth()->user()->company_id);
+            $mapping = $this->service->findBySlug($slug, auth()->id());
 
             if (!$mapping) {
                 return $this->errorResponse('Department feature not found.', statusCode: 404);
@@ -140,7 +140,7 @@ class DepartmentFeatureController extends Controller
     public function destroy(string $slug): JsonResponse
     {
         try {
-            $mapping = $this->service->findBySlug($slug, auth()->user()->company_id);
+            $mapping = $this->service->findBySlug($slug, auth()->id());
 
             if (!$mapping) {
                 return $this->errorResponse('Department feature not found.', statusCode: 404);

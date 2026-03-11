@@ -83,11 +83,6 @@ return [
             'model'  => App\Models\Admin::class,
         ],
 
-        'company_registers' => [
-            'driver' => 'eloquent',
-            'model'  => App\Models\CompanyRegister::class,
-        ],
-
         'companies' => [
             'driver' => 'eloquent',
             'model'  => App\Models\Company::class,

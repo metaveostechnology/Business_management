@@ -29,7 +29,7 @@ class BranchUserController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $companyId = auth()->user()->company_id;
+            $companyId = auth()->id();
             $paginator = $this->branchUserService->getBranchUsers(
                 companyId: $companyId,
                 search:    $request->query('search'),
@@ -54,7 +54,7 @@ class BranchUserController extends Controller
     public function store(StoreBranchUserRequest $request): JsonResponse
     {
         try {
-            $companyId = auth()->user()->company_id;
+            $companyId = auth()->id();
 
             // Ensure the selected branch belongs to the authenticated company
             $branch = Branch::where('id', $request->integer('branch_id'))
@@ -90,7 +90,7 @@ class BranchUserController extends Controller
     public function show(string $slug): JsonResponse
     {
         try {
-            $branchUser = $this->branchUserService->findBySlug($slug, auth()->user()->company_id);
+            $branchUser = $this->branchUserService->findBySlug($slug, auth()->id());
 
             if (!$branchUser) {
                 return $this->errorResponse('Branch user not found.', statusCode: 404);
@@ -112,7 +112,7 @@ class BranchUserController extends Controller
     public function update(UpdateBranchUserRequest $request, string $slug): JsonResponse
     {
         try {
-            $companyId  = auth()->user()->company_id;
+            $companyId  = auth()->id();
             $branchUser = $this->branchUserService->findBySlug($slug, $companyId);
 
             if (!$branchUser) {
@@ -151,7 +151,7 @@ class BranchUserController extends Controller
     public function destroy(string $slug): JsonResponse
     {
         try {
-            $branchUser = $this->branchUserService->findBySlug($slug, auth()->user()->company_id);
+            $branchUser = $this->branchUserService->findBySlug($slug, auth()->id());
 
             if (!$branchUser) {
                 return $this->errorResponse('Branch user not found.', statusCode: 404);
@@ -172,7 +172,7 @@ class BranchUserController extends Controller
     public function changePassword(ChangeBranchUserPasswordRequest $request, string $slug): JsonResponse
     {
         try {
-            $branchUser = $this->branchUserService->findBySlug($slug, auth()->user()->company_id);
+            $branchUser = $this->branchUserService->findBySlug($slug, auth()->id());
 
             if (!$branchUser) {
                 return $this->errorResponse('Branch user not found.', statusCode: 404);

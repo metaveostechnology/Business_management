@@ -28,7 +28,7 @@ class SystemSettingController extends Controller
     {
         try {
             $settings = $this->settingService->getSettings(
-                companyId: auth()->user()->company_id,
+                companyId: auth()->id(),
                 search:    $request->query('search'),
                 group:     $request->query('group')
             );
@@ -49,7 +49,7 @@ class SystemSettingController extends Controller
     public function store(StoreSystemSettingRequest $request): JsonResponse
     {
         try {
-            $companyId = auth()->user()->company_id;
+            $companyId = auth()->id();
             $validated = $request->validated();
 
             // Guard: prevent duplicate (company, branch, group, key)
@@ -85,7 +85,7 @@ class SystemSettingController extends Controller
     public function show(string $slug): JsonResponse
     {
         try {
-            $setting = $this->settingService->findBySlug($slug, auth()->user()->company_id);
+            $setting = $this->settingService->findBySlug($slug, auth()->id());
 
             if (!$setting) {
                 return $this->errorResponse('Setting not found.', statusCode: 404);
@@ -107,7 +107,7 @@ class SystemSettingController extends Controller
     public function update(UpdateSystemSettingRequest $request, string $slug): JsonResponse
     {
         try {
-            $setting = $this->settingService->findBySlug($slug, auth()->user()->company_id);
+            $setting = $this->settingService->findBySlug($slug, auth()->id());
 
             if (!$setting) {
                 return $this->errorResponse('Setting not found.', statusCode: 404);
@@ -131,7 +131,7 @@ class SystemSettingController extends Controller
     public function destroy(string $slug): JsonResponse
     {
         try {
-            $setting = $this->settingService->findBySlug($slug, auth()->user()->company_id);
+            $setting = $this->settingService->findBySlug($slug, auth()->id());
 
             if (!$setting) {
                 return $this->errorResponse('Setting not found.', statusCode: 404);

@@ -37,7 +37,7 @@ class StoreCompanyRequest extends FormRequest
             'state'               => ['nullable', 'string', 'max:120'],
             'country'             => ['nullable', 'string', 'max:120'],
             'postal_code'         => ['nullable', 'string', 'max:30'],
-            'logo'                => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'logo'                => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             'is_active'           => ['boolean'],
         ];
     }

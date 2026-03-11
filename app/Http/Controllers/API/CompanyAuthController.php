@@ -35,10 +35,14 @@ class CompanyAuthController extends Controller
 
             // Generate unique slug from company name
             $data['slug']     = $this->generateUniqueSlug($data['name']);
+            $data['code']     = 'CMP-' . strtoupper(Str::random(6));
             $data['password'] = Hash::make($data['password']);
 
-            // Map `logo` input to `logo_path` column
-            if (isset($data['logo'])) {
+            // Map `logo` file upload or string to `logo_path` column
+            if ($request->hasFile('logo')) {
+                $data['logo_path'] = $request->file('logo')->store('companylogo', 'public');
+                unset($data['logo']);
+            } elseif (isset($data['logo'])) {
                 $data['logo_path'] = $data['logo'];
                 unset($data['logo']);
             }
@@ -144,8 +148,15 @@ class CompanyAuthController extends Controller
             $company = $request->user();
             $data    = $request->validated();
 
-            // Map `logo` input to `logo_path` column
-            if (array_key_exists('logo', $data)) {
+            // Map `logo` file upload or string to `logo_path` column
+            if ($request->hasFile('logo')) {
+                // Delete old logo
+                if ($company->logo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($company->logo_path)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($company->logo_path);
+                }
+                $data['logo_path'] = $request->file('logo')->store('companylogo', 'public');
+                unset($data['logo']);
+            } elseif (array_key_exists('logo', $data)) {
                 $data['logo_path'] = $data['logo'];
                 unset($data['logo']);
             }

@@ -2,7 +2,7 @@
 
 A **production-ready Business Management REST API** built with **Laravel** and **Laravel Sanctum**, following the **Repository + Service Pattern** with full API Resource transformation and FormRequest validation.
 
-Modules covered: **Admin Management**, **Company Auth & Management**, **Branch Management**, **Feature Management**, **Department Management**, **Department Features**, **System Settings**, **Roles**, **Branch Users**.
+Modules: **Admin Auth**, **Admin Management**, **Company Auth & Management**, **Branch Management**, **Feature Management**, **Department Management**, **Department Features**, **System Settings**, **Roles**, **Branch Users**.
 
 ---
 
@@ -18,187 +18,102 @@ Modules covered: **Admin Management**, **Company Auth & Management**, **Branch M
 | Response Format | API Resources (JSON) |
 | Validation | Laravel FormRequest |
 
-## 👥 Two-Tier Authentication System
-
-The API maintains two completely isolated classes of users, each with their own dedicated authentication guards via Laravel Sanctum:
-
-1. **Admins:** Authenticate via `POST /api/admin/login` (admin Sanctum guard) to access `/api/admins/*` and `/api/admin/companies/*`.
-2. **Company Users (new):** Companies authenticate via `POST /api/company/login` using the **companies table** directly. After login they access `/api/company/*` routes (profile, branches, roles, etc.).
-3. **Company Users (legacy):** The old `POST /api/login` using `company_register` table is retained for backward compatibility.
-
-All company-scoped routes enforce that resources **belong to the authenticated company**.
-
 ---
 
-## 📋 Prerequisites
+## 👥 Authentication System
 
-- PHP 8.1+
-- Composer
-- MySQL 5.7+ / MariaDB 10.3+
-- PHP extensions: `pdo_mysql`, `mbstring`, `openssl`, `tokenizer`
+| Guard | Login Endpoint | Who Uses It | Accesses |
+|---|---|---|---|
+| `sanctum` (admin) | `POST /api/admin/login` | Platform admins | `/api/admins/*`, `/api/admin/companies/*`, `/api/companies/*` |
+| `company` | `POST /api/company/login` | Company accounts | `/api/company/*` (branches, roles, etc.) |
+
+> All protected routes require: `Authorization: Bearer {token}`
 
 ---
 
 ## ⚙️ Installation
 
-### 1. Install PHP Dependencies
-
 ```bash
 composer install
-```
-
-### 2. Environment Setup
-
-```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
-Edit `.env` and set your database credentials:
-
+Edit `.env`:
 ```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
 DB_DATABASE=business_management_api
 DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-### 3. Create Database
-
-```sql
-CREATE DATABASE business_management_api CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-### 4. Run Migrations and Seed Default Admin
-
 ```bash
 php artisan migrate --seed
-```
-
-### 5. Storage Link (optional but good practice)
-
-```bash
-php artisan storage:link
-```
-
-### 6. Start Development Server
-
-```bash
 php artisan serve
 ```
 
-API will be available at: **`http://localhost:8000/api`**
+API base URL: `http://localhost:8000/api`
 
 ---
 
-## 🔐 Default Admin Login
+## 📋 Default Admin Credentials
 
-| Field    | Value                |
-|----------|----------------------|
-| Email    | admin@example.com    |
-| Password | password123          |
-| Slug     | system-admin         |
-| Status   | active               |
+| Field | Value |
+|---|---|
+| Email | admin@example.com |
+| Password | password123 |
 
 ---
 
-## 🔑 Authentication
+## 📡 Complete API Reference
 
-This API uses **Laravel Sanctum Bearer Token** authentication.
-
-After login, include the token in every protected request:
-
-```
-Authorization: Bearer {your_token_here}
-```
-
-> **Note:** The system uses two Sanctum guards. Passing either an **Admin Token** or a **Company Token** to company management endpoints will successfully authenticate you. Admin endpoints strictly require an Admin token.
-
-**Example:**
-
-```bash
-curl -X GET http://localhost:8000/api/admin/profile \
-     -H "Authorization: Bearer 1|abc123tokenhere" \
-     -H "Accept: application/json"
-```
+### Base URL: `http://localhost:8000/api`
 
 ---
 
-## 📡 API Endpoints
-
-### Base URL
-
-```
-http://localhost:8000/api
-```
+## 🔓 PUBLIC ROUTES
 
 ---
 
-### 🏢 Public Routes (Company Users)
+### 1. Admin Login
 
-#### `POST /api/register`
-
-Register a new company user.
-
-**Request Body:**
+**`POST /api/admin/login`**
 
 ```json
-{
-    "email": "company@example.com",
-    "password": "password123",
-    "password_confirmation": "password123"
-}
+// Request
+{ "login": "admin@example.com", "password": "password123" }
+// OR
+{ "login": "admin", "password": "password123" }
 ```
 
-**Success Response (201):**
-
 ```json
+// 200 Success
 {
     "success": true,
-    "message": "Registration successful"
+    "message": "Login successful.",
+    "data": {
+        "token": "1|abc123token",
+        "admin": {
+            "slug": "system-admin", "name": "System Admin",
+            "email": "admin@example.com", "username": "admin",
+            "status": "active"
+        }
+    }
 }
+```
+
+```json
+// 401 Error
+{ "success": false, "message": "Invalid credentials or account is not active." }
 ```
 
 ---
 
-#### `POST /api/login`
+### 2. Company Self-Registration
 
-Authenticate a company user.
-
-**Request Body:**
+**`POST /api/register-company`**
 
 ```json
-{
-    "email": "company@example.com",
-    "password": "password123"
-}
-```
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Login successful",
-    "token": "1|abc123sanctumtokenhere"
-}
-```
-
----
-
-### 🏗️ Public Routes (Company Self-Registration)
-
-#### `POST /api/register-company`
-
-Allow a company to **self-register** on the platform. Creates a record in the `companies` table.
-
-> **Slug is auto-generated from company name.** Password is hashed with `Hash::make()`.
-
-**Request Body:**
-
-```json
+// Request
 {
     "name": "ABC Pvt Ltd",
     "email": "admin@abc.com",
@@ -206,36 +121,401 @@ Allow a company to **self-register** on the platform. Creates a record in the `c
     "password": "secret123",
     "password_confirmation": "secret123",
     "logo": "https://cdn.example.com/logo.png",
-    "address": "123 Main Street, Delhi",
+    "address": "123 Main St, Delhi",
     "website": "https://abc.com"
 }
 ```
 
-**Validation Rules:**
-
-| Field         | Rules                                   |
-|---------------|-----------------------------------------|
-| `name`        | required, string, max:150               |
-| `email`       | required, email, unique:companies       |
-| `phone`       | required, string, max:20                |
-| `password`    | required, string, min:6, confirmed      |
-| `logo`        | nullable, string, max:255               |
-| `address`     | nullable, string                        |
-| `website`     | nullable, url, max:200                  |
-
-**Success Response (201):**
+| Field | Rules |
+|---|---|
+| `name` | required, string, max:150 |
+| `email` | required, email, unique:companies |
+| `phone` | required, string, max:20 |
+| `password` | required, min:6, confirmed |
+| `logo` | nullable, string |
+| `address` | nullable, string |
+| `website` | nullable, url |
 
 ```json
+// 201 Success
 {
     "success": true,
     "message": "Company registered successfully.",
     "data": {
-        "id": 1,
-        "slug": "abc-pvt-ltd",
-        "name": "ABC Pvt Ltd",
-        "email": "admin@abc.com",
-        "phone": "9876543210",
-        "is_active": true,
+        "id": 1, "slug": "abc-pvt-ltd", "name": "ABC Pvt Ltd",
+        "email": "admin@abc.com", "phone": "9876543210", "is_active": true
+    }
+}
+```
+
+---
+
+### 3. Company Login (via companies table)
+
+**`POST /api/company/login`**
+
+```json
+// Request
+{ "email": "admin@abc.com", "password": "secret123" }
+```
+
+```json
+// 200 Success
+{
+    "success": true, "message": "Login successful.",
+    "data": {
+        "company": "ABC Pvt Ltd", "email": "admin@abc.com",
+        "token": "2|xyz789token",
+        "profile": { "id": 1, "slug": "abc-pvt-ltd", "name": "ABC Pvt Ltd", "is_active": true }
+    }
+}
+```
+
+```json
+// 401 Error
+{ "success": false, "message": "Invalid credentials or account is not active." }
+```
+
+---
+
+---
+
+## 🛡️ PROTECTED ROUTES — ADMIN
+
+> Require header: `Authorization: Bearer {admin_token}`
+
+---
+
+### 5. Admin Logout
+
+**`POST /api/admin/logout`**
+
+```json
+// 200 Success
+{ "success": true, "message": "Logged out successfully." }
+```
+
+---
+
+### 6. Admin Profile
+
+**`GET /api/admin/profile`**
+
+```json
+// 200 Success
+{
+    "success": true, "message": "Profile retrieved successfully.",
+    "data": {
+        "slug": "system-admin", "name": "System Admin",
+        "email": "admin@example.com", "phone": null, "username": "admin",
+        "status": "active", "last_login_at": "2026-03-11 09:00:00",
+        "last_login_ip": "127.0.0.1"
+    }
+}
+```
+
+---
+
+### 7. Update Admin Profile
+
+**`PUT /api/admin/profile`**
+
+```json
+// Request (all optional)
+{
+    "name": "Super Admin", "phone": "9999999999",
+    "current_password": "password123",
+    "password": "newpass456", "password_confirmation": "newpass456"
+}
+```
+
+```json
+// 200 Success
+{ "success": true, "message": "Profile updated successfully.", "data": { ... } }
+```
+
+---
+
+### 8. List Admins
+
+**`GET /api/admins`**
+
+| Query Param | Type | Description |
+|---|---|---|
+| `search` | string | Search name, email, username |
+| `status` | string | `active`, `inactive`, `blocked` |
+| `per_page` | int | Default: 10 |
+
+```
+GET /api/admins
+GET /api/admins?search=john&status=active&per_page=5
+```
+
+```json
+// 200 Paginated Response
+{
+    "success": true, "message": "Admins retrieved successfully.",
+    "data": [{ "slug": "john-doe", "name": "John Doe", "email": "john@example.com", "status": "active" }],
+    "meta": { "current_page": 1, "per_page": 10, "total": 20, "last_page": 2 },
+    "links": { "first": "...", "last": "...", "prev": null, "next": "..." }
+}
+```
+
+---
+
+### 9. Create Admin
+
+**`POST /api/admins`** — Slug auto-generated from name.
+
+```json
+// Request
+{
+    "name": "John Doe", "email": "john@example.com",
+    "phone": "9876543210", "username": "john",
+    "password": "password123", "password_confirmation": "password123",
+    "status": "active"
+}
+```
+
+| Field | Rules |
+|---|---|
+| `name` | required, string, max:150 |
+| `email` | required, email, unique |
+| `username` | nullable, string, unique, alpha_dash |
+| `password` | required, min:8, confirmed |
+| `status` | required, in:active,inactive,blocked |
+
+```json
+// 201 Success
+{ "success": true, "message": "Admin created successfully.", "data": { "slug": "john-doe", ... } }
+```
+
+---
+
+### 10. Get Admin by Slug
+
+**`GET /api/admins/{slug}`**
+
+```
+GET /api/admins/john-doe
+```
+
+```json
+// 200 Success
+{ "success": true, "message": "Admin retrieved successfully.", "data": { "slug": "john-doe", ... } }
+```
+
+```json
+// 404 Error
+{ "success": false, "message": "Admin not found." }
+```
+
+---
+
+### 11. Update Admin
+
+**`PUT /api/admins/{slug}`** — All fields optional.
+
+> For file/form-data: use **`POST /api/admins/{slug}`** instead.
+
+```json
+// Request
+{ "name": "John Updated", "status": "inactive" }
+```
+
+```json
+// 200 Success
+{ "success": true, "message": "Admin updated successfully.", "data": { ... } }
+```
+
+> Slug is **auto-regenerated** if name changes.
+
+---
+
+### 12. Delete Admin (Soft Delete)
+
+**`DELETE /api/admins/{slug}`**
+
+> ⚠️ Cannot delete your own account (returns 403).
+
+```json
+// 200 Success
+{ "success": true, "message": "Admin deleted successfully." }
+```
+
+```json
+// 403 Self-Delete Error
+{ "success": false, "message": "You cannot delete your own account." }
+```
+
+---
+
+### 13. Restore Soft-Deleted Admin
+
+**`POST /api/admins/{slug}/restore`**
+
+```json
+// 200 Success
+{ "success": true, "message": "Admin restored successfully.", "data": { ... } }
+```
+
+---
+
+### 14–18. Admin Company CRUD
+
+> Admin can create, view, update, and soft-delete companies.
+
+#### `GET /api/admin/companies`
+
+| Query Param | Type | Description |
+|---|---|---|
+| `search` | string | Search name, email, phone |
+| `is_active` | boolean | `1` or `0` |
+| `per_page` | int | Default: 10 |
+
+```json
+// 200 Paginated Response
+{
+    "success": true, "message": "Companies retrieved successfully.",
+    "data": [{ "id": 1, "slug": "abc-pvt-ltd", "name": "ABC Pvt Ltd", "is_active": true }],
+    "meta": { "current_page": 1, "total": 5 }
+}
+```
+
+#### `POST /api/admin/companies` — Slug auto-generated. Password hashed.
+
+```json
+// Request
+{
+    "name": "XYZ Corp", "email": "admin@xyz.com", "phone": "9000000000",
+    "password": "secret123", "password_confirmation": "secret123",
+    "legal_name": "XYZ Corp Pvt Ltd", "website": "https://xyz.com",
+    "currency_code": "INR", "timezone": "Asia/Kolkata", "is_active": true
+}
+```
+
+| Field | Rules |
+|---|---|
+| `name` | required, string, max:150 |
+| `email` | required, email, unique:companies |
+| `phone` | required, string, max:20 |
+| `password` | required, min:6, confirmed |
+| `legal_name` | nullable, string, max:200 |
+| `website` | nullable, url |
+| `currency_code` | nullable, string, max:10 |
+| `timezone` | nullable, string |
+| `is_active` | boolean |
+
+```json
+// 201 Success
+{ "success": true, "message": "Company created successfully.", "data": { "slug": "xyz-corp", ... } }
+```
+
+#### `GET /api/admin/companies/{slug}`
+
+```json
+// 200 Success
+{ "success": true, "message": "Company retrieved successfully.", "data": { ... } }
+```
+
+#### `PUT /api/admin/companies/{slug}` — All fields optional.
+
+> If `name` changes, slug is regenerated. If `password` is sent, it is re-hashed.
+
+```json
+// Request
+{ "name": "XYZ Global Ltd", "is_active": false }
+```
+
+```json
+// 200 Success
+{ "success": true, "message": "Company updated successfully.", "data": { "slug": "xyz-global-ltd", ... } }
+```
+
+#### `DELETE /api/admin/companies/{slug}` — Soft delete (sets `is_delete=true`, `is_active=false`).
+
+```json
+// 200 Success
+{ "success": true, "message": "Company deactivated and deleted successfully." }
+```
+
+---
+
+### 19–24. Companies (Shared Admin+Company Access)
+
+> Both Admin and Company tokens can access these routes.
+
+#### `GET /api/companies`
+
+| Query Param | Type | Description |
+|---|---|---|
+| `search` | string | Search name, email, phone |
+| `is_active` | string | `active`, `inactive`, `blocked` |
+| `per_page` | int | Default: 10 |
+
+```json
+// 200 Success
+{ "success": true, "data": [...], "meta": { "total": 10 } }
+```
+
+#### `POST /api/companies`
+
+> Accepts `multipart/form-data` for logo file upload.
+
+```json
+{ "name": "...", "email": "...", "phone": "...", ... }
+```
+
+Logo validation (file upload):
+
+| Field | Rules |
+|---|---|
+| `logo` | nullable, image, mimes: jpeg,png,jpg,gif,webp, **max: 5120 KB (5 MB)** |
+
+#### `GET /api/companies/{slug}`
+
+#### `PUT /api/companies/{slug}` — JSON update (no file upload).
+
+#### `POST /api/companies/{slug}` — Form-data update (for logo file upload, max **5 MB**).
+
+> Use `POST` with `_method=PUT` in body, or just `POST`, when uploading a logo file.
+
+#### `DELETE /api/companies/{slug}`
+
+---
+
+## 🏢 PROTECTED ROUTES — COMPANY AUTH
+
+> Require header: `Authorization: Bearer {company_token}` (from `POST /api/company/login`)
+
+---
+
+### 25. Company Logout
+
+**`POST /api/company/logout`**
+
+```json
+// 200 Success
+{ "success": true, "message": "Logged out successfully." }
+```
+
+---
+
+### 26. Get Company Profile
+
+**`GET /api/company/profile`**
+
+```json
+// 200 Success
+{
+    "success": true, "message": "Profile retrieved successfully.",
+    "data": {
+        "id": 1, "slug": "abc-pvt-ltd", "name": "ABC Pvt Ltd",
+        "email": "admin@abc.com", "phone": "9876543210",
+        "website": "https://abc.com", "logo": null,
+        "address": "123 Main St, Delhi",
+        "currency_code": "INR", "timezone": "Asia/Kolkata",
+        "is_active": true, "is_delete": false,
         "created_at": "2026-03-11 09:00:00"
     }
 }
@@ -243,2271 +523,732 @@ Allow a company to **self-register** on the platform. Creates a record in the `c
 
 ---
 
-### 🔐 Public Routes (Company Login — companies table)
+### 27. Update Company Profile
 
-#### `POST /api/company/login`
-
-Authenticate a company using the **companies table**. Returns a Sanctum token for use in all protected company routes.
-
-**Request Body:**
+**`PUT /api/company/profile`**
 
 ```json
+// Request (all optional)
 {
-    "email": "admin@abc.com",
-    "password": "secret123"
+    "name": "ABC Enterprises", "phone": "9000000001",
+    "email": "new@abc.com", "address": "New Address",
+    "logo": "https://cdn.example.com/logo.png",
+    "website": "https://abc-new.com"
 }
 ```
 
-**Success Response (200):**
+| Field | Rules |
+|---|---|
+| `name` | sometimes, required, string, max:150 |
+| `phone` | sometimes, required, string, max:20 |
+| `email` | sometimes, required, email, unique (ignore self) |
+| `address` | nullable, string |
+| `logo` | nullable, string, max:255 |
+| `website` | nullable, url |
 
 ```json
-{
-    "success": true,
-    "message": "Login successful.",
-    "data": {
-        "company": "ABC Pvt Ltd",
-        "email": "admin@abc.com",
-        "token": "1|abc123sanctumtokenhere",
-        "profile": {
-            "id": 1,
-            "slug": "abc-pvt-ltd",
-            "name": "ABC Pvt Ltd",
-            "email": "admin@abc.com",
-            "phone": "9876543210",
-            "website": "https://abc.com",
-            "is_active": true
-        }
-    }
-}
+// 200 Success
+{ "success": true, "message": "Profile updated successfully.", "data": { "slug": "abc-enterprises", ... } }
 ```
 
-**Error Response (401):**
-
-```json
-{
-    "success": false,
-    "message": "Invalid credentials or account is not active."
-}
-```
+> Slug is regenerated if `name` changes.
 
 ---
 
-#### `POST /api/admin/login`
+### 28. Change Company Password
 
-Authenticate an admin using **email or username** with password.
-
-**Rate Limited:** 5 attempts per minute.
-
-**Request Body:**
+**`POST /api/company/change-password`**
 
 ```json
-{
-    "login": "admin@example.com",
-    "password": "password123"
-}
-```
-
-> You can also use `"login": "admin"` (username) instead of email.
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Login successful.",
-    "data": {
-        "token": "1|abc123sanctumtokenhere",
-        "admin": {
-            "slug": "system-admin",
-            "name": "System Admin",
-            "email": "admin@example.com",
-            "phone": null,
-            "username": "admin",
-            "status": "active",
-            "last_login_at": "2024-01-01 10:00:00",
-            "last_login_ip": "127.0.0.1",
-            "created_at": "2024-01-01 00:00:00",
-            "updated_at": "2024-01-01 10:00:00"
-        }
-    }
-}
-```
-
-**Error Response (401):**
-
-```json
-{
-    "success": false,
-    "message": "Invalid credentials or account is not active."
-}
-```
-
-**Validation Error (422):**
-
-```json
-{
-    "success": false,
-    "message": "Validation error.",
-    "errors": {
-        "login": ["Email or username is required."],
-        "password": ["Password is required."]
-    }
-}
-```
-
----
-
-### Protected Routes
-
-> All routes below require the header: `Authorization: Bearer {token}`
-
----
-
-### 🛡️ Protected Routes (Admin)
-*(Require Admin Sanctum Token)*
-
-#### `POST /api/admin/logout`
-
-Revoke the current Sanctum token.
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Logged out successfully."
-}
-```
-
----
-
-#### `GET /api/admin/profile`
-
-Get the authenticated admin's profile.
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Profile retrieved successfully.",
-    "data": {
-        "slug": "system-admin",
-        "name": "System Admin",
-        "email": "admin@example.com",
-        "phone": null,
-        "username": "admin",
-        "status": "active",
-        "last_login_at": "2024-01-01 10:00:00",
-        "last_login_ip": "127.0.0.1",
-        "created_at": "2024-01-01 00:00:00",
-        "updated_at": "2024-01-01 00:00:00"
-    }
-}
-```
-
----
-
-#### `PUT /api/admin/profile`
-
-Update the authenticated admin's own profile.
-
-**Request Body (all fields optional):**
-
-```json
-{
-    "name": "Updated Admin Name",
-    "phone": "9876543210",
-    "current_password": "password123",
-    "password": "newpassword456",
-    "password_confirmation": "newpassword456"
-}
-```
-
-> `current_password` is required only when changing the password.
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Profile updated successfully.",
-    "data": { ... }
-}
-```
-
----
-
-### 🏢 Protected Routes (Company Management)
-*(Require Company Sanctum Token OR Admin Sanctum Token)*
-
-#### `GET /api/companies`
-
-List all companies with **pagination**, **search**, and **status filter**.
-
-**Query Parameters:**
-
-| Parameter  | Type   | Description                          |
-|------------|--------|--------------------------------------|
-| `search`   | string | Search by name, email, username, phone |
-| `status`   | string | Filter: `active`, `inactive`, `blocked` |
-| `per_page` | int    | Items per page (default: 10)         |
-
-**Examples:**
-
-```
-GET /api/admins
-GET /api/admins?search=john
-GET /api/admins?status=active
-GET /api/admins?search=john&status=active&per_page=5
-```
-
-**Paginated Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Admins retrieved successfully.",
-    "data": [
-        {
-            "slug": "system-admin",
-            "name": "System Admin",
-            "email": "admin@example.com",
-            "phone": null,
-            "username": "admin",
-            "status": "active",
-            "last_login_at": "2024-01-01 10:00:00",
-            "last_login_ip": "127.0.0.1",
-            "created_at": "2024-01-01 00:00:00",
-            "updated_at": "2024-01-01 10:00:00"
-        }
-    ],
-    "meta": {
-        "current_page": 1,
-        "per_page": 10,
-        "total": 11,
-        "last_page": 2,
-        "from": 1,
-        "to": 10
-    },
-    "links": {
-        "first": "http://localhost:8000/api/admins?page=1",
-        "last": "http://localhost:8000/api/admins?page=2",
-        "prev": null,
-        "next": "http://localhost:8000/api/admins?page=2"
-    }
-}
-```
-
----
-
-#### `GET /api/admins/{slug}`
-
-Get a single admin by slug.
-
-**Example:** `GET /api/admins/system-admin`
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Admin retrieved successfully.",
-    "data": {
-        "slug": "system-admin",
-        "name": "System Admin",
-        "email": "admin@example.com",
-        ...
-    }
-}
-```
-
-**Error Response (404):**
-
-```json
-{
-    "success": false,
-    "message": "Admin not found."
-}
-```
-
----
-
-#### `POST /api/admins`
-
-Create a new admin. **Slug is auto-generated from name**.
-
-**Request Body:**
-
-```json
-{
-    "name": "John Doe",
-    "email": "john@example.com",
-    "phone": "9999999999",
-    "username": "john",
-    "password": "password123",
-    "password_confirmation": "password123",
-    "status": "active"
-}
-```
-
-**Validation Rules:**
-
-| Field    | Rules |
-|----------|-------|
-| `name`   | required, string, max:150 |
-| `email`  | required, email, unique |
-| `phone`  | nullable, string, max:30 |
-| `username` | nullable, string, max:100, unique, alpha_dash |
-| `password` | required, min:8, confirmed |
-| `status` | required, in:active,inactive,blocked |
-
-**Success Response (201):**
-
-```json
-{
-    "success": true,
-    "message": "Admin created successfully.",
-    "data": {
-        "slug": "john-doe",
-        "name": "John Doe",
-        "email": "john@example.com",
-        ...
-    }
-}
-```
-
----
-
-#### `POST /api/admins/{slug}` ← **Use this in Postman for form-data**
-### `PUT  /api/admins/{slug}` ← JSON-only updates
-
-Update an existing admin by slug.
-
-> **Important:** HTTP `PUT` cannot carry `multipart/form-data` in Postman/most clients.  
-> If you are using form-data in Postman, use **`POST /api/admins/{slug}`**. If using raw JSON, you can use `PUT`.
-
-**Request Body (all fields optional):**
-
-```json
-{
-    "name": "John Updated",
-    "phone": "8888888888",
-    "status": "inactive"
-}
-```
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Admin updated successfully.",
-    "data": { ... }
-}
-```
-
-> If name is changed, slug is **automatically regenerated** with uniqueness guaranteed.
-
----
-
-#### `DELETE /api/admins/{slug}`
-
-Soft-delete an admin by slug.
-
-> ⚠️ You **cannot delete your own account**. Returns `403 Forbidden`.
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Admin deleted successfully."
-}
-```
-
-**Self-Delete Error (403):**
-
-```json
-{
-    "success": false,
-    "message": "You cannot delete your own account."
-}
-```
-
----
-
-#### `POST /api/admins/{slug}/restore`
-
-Restore a soft-deleted admin.
-
-**Example:** `POST /api/admins/john-doe/restore`
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Admin restored successfully.",
-    "data": { ... }
-}
-```
-
-**Error Response (404):**
-
-```json
-{
-    "success": false,
-    "message": "Admin not found or is not deleted."
-}
-```
-
----
-
-### 🔐 Protected Routes (Company — Auth & Profile)
-*(Require Company Sanctum Token — from `POST /api/company/login`)*
-
-> All routes in this section use the token issued by `POST /api/company/login` (companies table).
-
----
-
-#### `POST /api/company/logout`
-
-Revoke the current company Sanctum token.
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Logged out successfully."
-}
-```
-
----
-
-#### `GET /api/company/profile`
-
-Get the authenticated company's own profile.
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Profile retrieved successfully.",
-    "data": {
-        "id": 1,
-        "slug": "abc-pvt-ltd",
-        "name": "ABC Pvt Ltd",
-        "email": "admin@abc.com",
-        "phone": "9876543210",
-        "website": "https://abc.com",
-        "logo": null,
-        "address": "123 Main Street, Delhi",
-        "is_active": true,
-        "is_delete": false,
-        "created_at": "2026-03-11 09:00:00",
-        "updated_at": "2026-03-11 09:00:00"
-    }
-}
-```
-
----
-
-#### `PUT /api/company/profile`
-
-Update the authenticated company's profile.
-
-> `company_id` is fixed — company cannot change its own ID. Slug regenerated if `name` changes.
-
-**Request Body (all fields optional):**
-
-```json
-{
-    "name": "ABC Enterprises Pvt Ltd",
-    "phone": "9000000000",
-    "email": "new@abc.com",
-    "address": "456 New Street, Mumbai",
-    "logo": "https://cdn.example.com/new-logo.png",
-    "website": "https://abc-enterprises.com"
-}
-```
-
-**Validation Rules:**
-
-| Field     | Rules                                          |
-|-----------|------------------------------------------------|
-| `name`    | sometimes, required, string, max:150           |
-| `phone`   | sometimes, required, string, max:20            |
-| `email`   | sometimes, required, email, unique (ignore self) |
-| `address` | nullable, string                               |
-| `logo`    | nullable, string, max:255                      |
-| `website` | nullable, url, max:200                         |
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Profile updated successfully.",
-    "data": {
-        "slug": "abc-enterprises-pvt-ltd",
-        "name": "ABC Enterprises Pvt Ltd",
-        "email": "new@abc.com",
-        ...
-    }
-}
-```
-
----
-
-#### `POST /api/company/change-password`
-
-Change the company's login password. Requires the current password for verification.
-
-**Request Body:**
-
-```json
+// Request
 {
     "current_password": "secret123",
-    "new_password": "newpassword456",
-    "new_password_confirmation": "newpassword456"
+    "new_password": "newpass456",
+    "new_password_confirmation": "newpass456"
 }
 ```
 
-**Validation Rules:**
-
-| Field                      | Rules                                    |
-|----------------------------|------------------------------------------|
-| `current_password`         | required, string (verified via Hash::check) |
-| `new_password`             | required, string, min:6, confirmed       |
-| `new_password_confirmation`| required, must match `new_password`      |
-
-**Success Response (200):**
+| Field | Rules |
+|---|---|
+| `current_password` | required, string (verified via `Hash::check`) |
+| `new_password` | required, min:6, confirmed |
+| `new_password_confirmation` | required |
 
 ```json
-{
-    "success": true,
-    "message": "Password updated successfully."
-}
+// 200 Success
+{ "success": true, "message": "Password updated successfully." }
 ```
 
-**Wrong Current Password (422):**
+```json
+// 422 Wrong Password
+{ "success": false, "message": "The current password is incorrect." }
+```
+
+---
+
+## 🏢 PROTECTED ROUTES — BRANCHES
+
+> Scoped to authenticated company. Company users cannot access branches of another company.
+
+---
+
+### 29. List Branches
+
+**`GET /api/company/branches`**
+
+| Query Param | Type | Description |
+|---|---|---|
+| `search` | string | Search name, code, email, city |
+| `is_active` | boolean | `1` or `0` |
+| `per_page` | int | Default: 10 |
 
 ```json
+// 200 Paginated Response
 {
-    "success": false,
-    "message": "The current password is incorrect."
+    "success": true, "message": "Branches retrieved successfully.",
+    "data": [{
+        "id": 1, "company_id": 1, "code": "BHB-001",
+        "name": "Bhubaneswar Head Office", "slug": "bhubaneswar-head-office",
+        "email": "bhubaneswar@abc.com", "phone": "9876543210",
+        "city": "Bhubaneswar", "state": "Odisha", "country": "India",
+        "is_head_office": true, "is_active": true
+    }],
+    "meta": { "current_page": 1, "per_page": 10, "total": 3, "last_page": 1 }
 }
 ```
 
 ---
 
-### 🏢 Protected Routes (Admin — Company CRUD)
-*(Require Admin Sanctum Token only)*
+### 30. Create Branch
 
-> Admin can **create, read, update, and soft-delete** companies. Soft-delete sets `is_delete = true` and `is_active = false`.
-> Slug is **auto-generated** from company name. Password is **hashed** with `Hash::make()`.
-
----
-
-#### `GET /api/admin/companies`
-
-List all active companies with pagination and search.
-
-**Query Parameters:**
-
-| Parameter   | Type    | Description                            |
-|-------------|---------|----------------------------------------|
-| `search`    | string  | Search by name, email, phone           |
-| `is_active` | boolean | Filter: `1` (active), `0` (inactive)   |
-| `per_page`  | int     | Items per page (default: 10)           |
-
-**Success Response (200):**
+**`POST /api/company/branches`** — `company_id` auto-set from token. Slug auto-generated.
 
 ```json
+// Request
 {
-    "success": true,
-    "message": "Companies retrieved successfully.",
-    "data": [ { "id": 1, "slug": "abc-pvt-ltd", "name": "ABC Pvt Ltd", ... } ],
-    "meta": { "current_page": 1, "total": 5, ... }
+    "code": "BHB-001", "name": "Bhubaneswar Head Office",
+    "email": "bhubaneswar@abc.com", "phone": "9876543210",
+    "address_line1": "Plot 12, Saheed Nagar", "city": "Bhubaneswar",
+    "state": "Odisha", "country": "India", "postal_code": "751007",
+    "google_map_link": "https://maps.google.com/?q=20.29,85.82",
+    "is_head_office": true, "is_active": true
 }
+```
+
+| Field | Rules |
+|---|---|
+| `code` | required, string, max:50, unique per company |
+| `name` | required, string, max:150 |
+| `email` | nullable, email |
+| `phone` | nullable, string |
+| `address_line1` | nullable, string |
+| `city` | nullable, string |
+| `state` | nullable, string |
+| `country` | nullable, string |
+| `postal_code` | nullable, string |
+| `google_map_link` | nullable, url |
+| `is_head_office` | boolean |
+| `is_active` | boolean |
+
+```json
+// 201 Success
+{ "success": true, "message": "Branch created successfully.", "data": { "slug": "bhubaneswar-head-office", ... } }
 ```
 
 ---
 
-#### `POST /api/admin/companies`
+### 31. Get Branch
 
-Create a new company. Slug is auto-generated, password is hashed.
-
-**Request Body:**
+**`GET /api/company/branches/{slug}`**
 
 ```json
-{
-    "name": "XYZ Corp",
-    "email": "admin@xyz.com",
-    "phone": "9876543210",
-    "password": "secret123",
-    "password_confirmation": "secret123",
-    "legal_name": "XYZ Corporation Pvt Ltd",
-    "website": "https://xyz.com",
-    "currency_code": "INR",
-    "timezone": "Asia/Kolkata",
-    "is_active": true
-}
+// 200 Success
+{ "success": true, "message": "Branch retrieved successfully.", "data": { ... } }
 ```
 
-**Success Response (201):**
-
 ```json
-{
-    "success": true,
-    "message": "Company created successfully.",
-    "data": { "id": 2, "slug": "xyz-corp", "name": "XYZ Corp", ... }
-}
+// 404 Error
+{ "success": false, "message": "Branch not found." }
 ```
 
 ---
 
-#### `GET /api/admin/companies/{slug}`
+### 32. Update Branch
 
-Get a single company by slug.
-
-**Example:** `GET /api/admin/companies/abc-pvt-ltd`
-
-**Success Response (200):**
+**`PUT /api/company/branches/{slug}`** — All fields optional. Slug regenerated if name changes.
 
 ```json
-{
-    "success": true,
-    "message": "Company retrieved successfully.",
-    "data": { "slug": "abc-pvt-ltd", "name": "ABC Pvt Ltd", ... }
-}
+// Request
+{ "name": "Bhubaneswar Main Office", "phone": "9123456789", "is_active": false }
+```
+
+```json
+// 200 Success
+{ "success": true, "message": "Branch updated successfully.", "data": { "slug": "bhubaneswar-main-office", ... } }
 ```
 
 ---
 
-#### `PUT /api/admin/companies/{slug}`
+### 33. Delete Branch
 
-Update a company by slug. All fields are optional.
-
-> If `name` changes, slug is **automatically regenerated**.
-> If `password` is provided, it is **re-hashed** before storing.
-
-**Request Body (partial update):**
+**`DELETE /api/company/branches/{slug}`**
 
 ```json
-{
-    "name": "ABC Global Ltd",
-    "is_active": false
-}
-```
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Company updated successfully.",
-    "data": { "slug": "abc-global-ltd", "name": "ABC Global Ltd", "is_active": false, ... }
-}
+// 200 Success
+{ "success": true, "message": "Branch deleted successfully." }
 ```
 
 ---
 
-#### `DELETE /api/admin/companies/{slug}`
+## 🧩 PROTECTED ROUTES — FEATURES
 
-Soft-delete a company (sets `is_delete = true`, `is_active = false`).
+> Global (not company-scoped). System features (`is_system=true`) cannot be deleted.
 
-**Example:** `DELETE /api/admin/companies/abc-pvt-ltd`
+---
 
-**Success Response (200):**
+### 34. List Features
+
+**`GET /api/company/features`**
+
+| Query Param | Type | Description |
+|---|---|---|
+| `search` | string | Search name, code, category |
+| `is_active` | boolean | `1` or `0` |
 
 ```json
+// 200 Success
 {
-    "success": true,
-    "message": "Company deactivated and deleted successfully."
+    "success": true, "message": "Features retrieved successfully.",
+    "data": [{
+        "id": 1, "code": "LIVE_LOCATION", "name": "Live Location Tracking",
+        "category": "Tracking", "slug": "live-location-tracking",
+        "is_system": false, "is_active": true, "sort_order": 1
+    }]
 }
 ```
 
 ---
 
-### 🏢 Protected Routes (Company User — Branch Management)
-*(Require Company User Sanctum Token only)*
+### 35. Create Feature
 
-> All Branch routes are scoped to the authenticated company user's company. A company user **cannot access branches of another company**.
-
-
----
-
-#### `GET /api/company/branches`
-
-List all branches belonging to the authenticated company user's company, with **pagination**, **search**, and **status filter**.
-
-**Query Parameters:**
-
-| Parameter  | Type    | Description                          |
-|------------|---------|--------------------------------------|
-| `search`   | string  | Search by name, code, email, city    |
-| `is_active`| boolean | Filter: `1` (active), `0` (inactive) |
-| `per_page` | int     | Items per page (default: 10)         |
-
-**Examples:**
-
-```
-GET /api/company/branches
-GET /api/company/branches?search=bhubaneswar
-GET /api/company/branches?is_active=1
-GET /api/company/branches?search=head&is_active=1&per_page=5
-```
-
-**Paginated Response (200):**
+**`POST /api/company/features`** — Slug auto-generated.
 
 ```json
+// Request
 {
-    "success": true,
-    "message": "Branches retrieved successfully.",
-    "data": [
-        {
-            "id": 1,
-            "company_id": 3,
-            "code": "BHB-001",
-            "name": "Bhubaneswar Head Office",
-            "slug": "bhubaneswar-head-office",
-            "email": "bhubaneswar@example.com",
-            "phone": "9876543210",
-            "manager_user_id": null,
-            "address_line1": "Plot 12, Saheed Nagar",
-            "address_line2": null,
-            "city": "Bhubaneswar",
-            "state": "Odisha",
-            "country": "India",
-            "postal_code": "751007",
-            "google_map_link": "https://maps.google.com/?q=20.2961,85.8245",
-            "is_head_office": true,
-            "is_active": true,
-            "created_at": "2026-03-10 09:28:00",
-            "updated_at": "2026-03-10 09:28:00"
-        }
-    ],
-    "meta": {
-        "current_page": 1,
-        "per_page": 10,
-        "total": 3,
-        "last_page": 1,
-        "from": 1,
-        "to": 3
-    },
-    "links": {
-        "first": "http://localhost:8000/api/company/branches?page=1",
-        "last": "http://localhost:8000/api/company/branches?page=1",
-        "prev": null,
-        "next": null
-    }
+    "code": "LIVE_LOCATION", "name": "Live Location Tracking",
+    "category": "Tracking", "description": "Track user location in real time.",
+    "icon": "map-pin", "sort_order": 1, "is_system": false, "is_active": true
 }
+```
+
+| Field | Rules |
+|---|---|
+| `code` | required, string, max:80, unique:features |
+| `name` | required, string, max:150 |
+| `category` | required, string, max:80 |
+| `description` | nullable, string |
+| `icon` | nullable, string |
+| `sort_order` | nullable, integer |
+| `is_system` | boolean |
+| `is_active` | boolean |
+
+```json
+// 201 Success
+{ "success": true, "message": "Feature created successfully.", "data": { "slug": "live-location-tracking", ... } }
 ```
 
 ---
 
-#### `POST /api/company/branches`
+### 36. Get Feature
 
-Create a new branch under the authenticated company.
-
-> **Slug is auto-generated from name.** `company_id` is automatically set from the authenticated token.
-
-**Request Body:**
+**`GET /api/company/features/{slug}`**
 
 ```json
-{
-    "code": "BHB-001",
-    "name": "Bhubaneswar Head Office",
-    "email": "bhubaneswar@example.com",
-    "phone": "9876543210",
-    "manager_user_id": null,
-    "address_line1": "Plot 12, Saheed Nagar",
-    "address_line2": null,
-    "city": "Bhubaneswar",
-    "state": "Odisha",
-    "country": "India",
-    "postal_code": "751007",
-    "google_map_link": "https://maps.google.com/?q=20.2961,85.8245",
-    "is_head_office": true,
-    "is_active": true
-}
+{ "success": true, "message": "Feature retrieved successfully.", "data": { ... } }
 ```
 
-**Validation Rules:**
+---
 
-| Field             | Rules                                   |
-|-------------------|-----------------------------------------|
-| `code`            | required, string, max:50, unique per company |
-| `name`            | required, string, max:150               |
-| `email`           | nullable, email, max:150                |
-| `phone`           | nullable, string, max:30                |
-| `manager_user_id` | nullable, integer                       |
-| `address_line1`   | nullable, string, max:255               |
-| `address_line2`   | nullable, string, max:255               |
-| `city`            | nullable, string, max:120               |
-| `state`           | nullable, string, max:120               |
-| `country`         | nullable, string, max:120               |
-| `postal_code`     | nullable, string, max:30                |
-| `google_map_link` | nullable, url                           |
-| `is_head_office`  | boolean                                 |
-| `is_active`       | boolean                                 |
+### 37. Update Feature
 
-**Success Response (201):**
+**`PUT /api/company/features/{slug}`** — All fields optional.
 
 ```json
-{
-    "success": true,
-    "message": "Branch created successfully.",
-    "data": {
-        "id": 1,
-        "company_id": 3,
-        "code": "BHB-001",
-        "name": "Bhubaneswar Head Office",
-        "slug": "bhubaneswar-head-office",
-        "email": "bhubaneswar@example.com",
-        "phone": "9876543210",
-        "manager_user_id": null,
-        "address_line1": "Plot 12, Saheed Nagar",
-        "address_line2": null,
-        "city": "Bhubaneswar",
-        "state": "Odisha",
-        "country": "India",
-        "postal_code": "751007",
-        "google_map_link": "https://maps.google.com/?q=20.2961,85.8245",
-        "is_head_office": true,
-        "is_active": true,
-        "created_at": "2026-03-10 09:28:00",
-        "updated_at": "2026-03-10 09:28:00"
-    }
-}
+// Request
+{ "name": "Real-Time Location Tracking", "sort_order": 2, "is_active": false }
 ```
 
-**Validation Error (422):**
+---
+
+### 38. Delete Feature
+
+**`DELETE /api/company/features/{slug}`**
+
+> ⚠️ System features (`is_system=true`) cannot be deleted — returns 403.
 
 ```json
+// 200 Success
+{ "success": true, "message": "Feature deleted successfully." }
+```
+
+```json
+// 403 Error
+{ "success": false, "message": "System features cannot be deleted." }
+```
+
+---
+
+## 🏗️ PROTECTED ROUTES — DEPARTMENTS
+
+> Company-scoped. `company_id` and `created_by` auto-set from token. System-default departments cannot be deleted.
+
+---
+
+### 39. List Departments
+
+**`GET /api/company/departments`**
+
+| Query Param | Type | Description |
+|---|---|---|
+| `search` | string | Search name, code |
+| `is_active` | boolean | `1` or `0` |
+
+```json
+// 200 Success
 {
-    "success": false,
-    "message": "Validation error.",
-    "errors": {
-        "code": ["This branch code already exists in your company."],
-        "name": ["Branch name is required."]
-    }
+    "success": true, "data": [{
+        "id": 1, "company_id": 1, "slug": "human-resource-department",
+        "code": "HR-001", "name": "Human Resource Department",
+        "level_no": 1, "approval_mode": "hierarchical",
+        "is_system_default": false, "is_active": true
+    }]
 }
 ```
 
 ---
 
-#### `GET /api/company/branches/{slug}`
+### 40. Create Department
 
-Get a single branch by slug (scoped to the authenticated company).
-
-**Example:** `GET /api/company/branches/bhubaneswar-head-office`
-
-**Success Response (200):**
+**`POST /api/company/departments`** — Slug auto-generated.
 
 ```json
+// Request
 {
-    "success": true,
-    "message": "Branch retrieved successfully.",
-    "data": {
-        "id": 1,
-        "company_id": 3,
-        "code": "BHB-001",
-        "name": "Bhubaneswar Head Office",
-        "slug": "bhubaneswar-head-office",
-        ...
-    }
-}
-```
-
-**Not Found (404):**
-
-```json
-{
-    "success": false,
-    "message": "Branch not found."
-}
-```
-
----
-
-#### `PUT /api/company/branches/{slug}`
-
-Update an existing branch by slug.
-
-> All fields are **optional** — only send what you want to change.
-> If `name` is changed, the **slug is automatically regenerated** with uniqueness guaranteed.
-
-**Example:** `PUT /api/company/branches/bhubaneswar-head-office`
-
-**Request Body (partial update):**
-
-```json
-{
-    "name": "Bhubaneswar Main Office",
-    "phone": "9123456789",
-    "is_active": false
-}
-```
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Branch updated successfully.",
-    "data": {
-        "id": 1,
-        "company_id": 3,
-        "code": "BHB-001",
-        "name": "Bhubaneswar Main Office",
-        "slug": "bhubaneswar-main-office",
-        "phone": "9123456789",
-        "is_active": false,
-        ...
-    }
-}
-```
-
----
-
-#### `DELETE /api/company/branches/{slug}`
-
-Delete a branch by slug (scoped to the authenticated company).
-
-**Example:** `DELETE /api/company/branches/bhubaneswar-head-office`
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Branch deleted successfully."
-}
-```
-
-**Not Found (404):**
-
-```json
-{
-    "success": false,
-    "message": "Branch not found."
-}
-```
-
----
-
-### 🧩 Protected Routes (Company User — Feature Management)
-*(Require Company User Sanctum Token only)*
-
-> Features are **global** (not company-scoped). Any authenticated company user can manage features.  
-> **System features (`is_system = true`) cannot be deleted.**
-
----
-
-#### `GET /api/company/features`
-
-List all features ordered by `sort_order`, with optional search and filter.
-
-**Query Parameters:**
-
-| Parameter   | Type    | Description                            |
-|-------------|---------|----------------------------------------|
-| `search`    | string  | Search by name, code, category         |
-| `is_active` | boolean | Filter: `1` (active), `0` (inactive)   |
-
-**Examples:**
-
-```
-GET /api/company/features
-GET /api/company/features?search=location
-GET /api/company/features?is_active=1
-```
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Features retrieved successfully.",
-    "data": [
-        {
-            "id": 1,
-            "code": "LIVE_LOCATION",
-            "name": "Live Location Tracking",
-            "category": "Tracking",
-            "description": "Track user location in real time.",
-            "slug": "live-location-tracking",
-            "icon": "map-pin",
-            "sort_order": 1,
-            "is_system": false,
-            "is_active": true,
-            "created_at": "2026-03-10 10:11:00",
-            "updated_at": "2026-03-10 10:11:00"
-        }
-    ]
-}
-```
-
----
-
-#### `POST /api/company/features`
-
-Create a new feature. **Slug is auto-generated from name.**
-
-**Request Body:**
-
-```json
-{
-    "code": "LIVE_LOCATION",
-    "name": "Live Location Tracking",
-    "category": "Tracking",
-    "description": "Track user location in real time.",
-    "icon": "map-pin",
-    "sort_order": 1,
-    "is_system": false,
-    "is_active": true
-}
-```
-
-**Validation Rules:**
-
-| Field         | Rules                                      |
-|---------------|--------------------------------------------|
-| `code`        | required, string, max:80, unique:features  |
-| `name`        | required, string, max:150                  |
-| `category`    | required, string, max:80                   |
-| `description` | nullable, string                           |
-| `icon`        | nullable, string, max:80                   |
-| `sort_order`  | nullable, integer                          |
-| `is_system`   | boolean                                    |
-| `is_active`   | boolean                                    |
-
-**Success Response (201):**
-
-```json
-{
-    "success": true,
-    "message": "Feature created successfully.",
-    "data": {
-        "id": 1,
-        "code": "LIVE_LOCATION",
-        "name": "Live Location Tracking",
-        "category": "Tracking",
-        "description": "Track user location in real time.",
-        "slug": "live-location-tracking",
-        "icon": "map-pin",
-        "sort_order": 1,
-        "is_system": false,
-        "is_active": true,
-        "created_at": "2026-03-10 10:11:00",
-        "updated_at": "2026-03-10 10:11:00"
-    }
-}
-```
-
-**Validation Error (422):**
-
-```json
-{
-    "success": false,
-    "message": "Validation error.",
-    "errors": {
-        "code": ["This feature code already exists."],
-        "name": ["Feature name is required."]
-    }
-}
-```
-
----
-
-#### `GET /api/company/features/{slug}`
-
-Get a single feature by slug.
-
-**Example:** `GET /api/company/features/live-location-tracking`
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Feature retrieved successfully.",
-    "data": {
-        "id": 1,
-        "code": "LIVE_LOCATION",
-        "name": "Live Location Tracking",
-        "slug": "live-location-tracking",
-        ...
-    }
-}
-```
-
-**Not Found (404):**
-
-```json
-{
-    "success": false,
-    "message": "Feature not found."
-}
-```
-
----
-
-#### `PUT /api/company/features/{slug}`
-
-Update an existing feature by slug. All fields are optional.
-
-> If `name` is changed, the **slug is automatically regenerated**.
-
-**Example:** `PUT /api/company/features/live-location-tracking`
-
-**Request Body (partial update):**
-
-```json
-{
-    "name": "Real-Time Location Tracking",
-    "sort_order": 2,
-    "is_active": false
-}
-```
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Feature updated successfully.",
-    "data": {
-        "id": 1,
-        "code": "LIVE_LOCATION",
-        "name": "Real-Time Location Tracking",
-        "slug": "real-time-location-tracking",
-        "sort_order": 2,
-        "is_active": false,
-        ...
-    }
-}
-```
-
----
-
-#### `DELETE /api/company/features/{slug}`
-
-Delete a feature by slug.
-
-> ⚠️ **System features (`is_system = true`) cannot be deleted.** Returns `403 Forbidden`.
-
-**Example:** `DELETE /api/company/features/live-location-tracking`
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Feature deleted successfully."
-}
-```
-
-**System Feature Error (403):**
-
-```json
-{
-    "success": false,
-    "message": "System features cannot be deleted."
-}
-```
-
-**Not Found (404):**
-
-```json
-{
-    "success": false,
-    "message": "Feature not found."
-}
-```
-
----
-
-### 🏢 Protected Routes (Company User — Department Management)
-*(Require Company User Sanctum Token only)*
-
-> All Department routes are **company-scoped**. A company user can only access departments that belong to their own company.
-> `company_id` and `created_by` are **automatically set** from the authenticated token.
-> **System-default departments (`is_system_default = true`) cannot be deleted.**
-
----
-
-#### `GET /api/company/departments`
-
-List all departments for the authenticated company, ordered by `level_no` then `name`.
-
-**Query Parameters:**
-
-| Parameter   | Type    | Description                          |
-|-------------|---------|--------------------------------------|
-| `search`    | string  | Search by name, code                 |
-| `is_active` | boolean | Filter: `1` (active), `0` (inactive) |
-
-**Examples:**
-
-```
-GET /api/company/departments
-GET /api/company/departments?search=human+resource
-GET /api/company/departments?is_active=1
-```
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Departments retrieved successfully.",
-    "data": [
-        {
-            "id": 1,
-            "company_id": 3,
-            "branch_id": 2,
-            "slug": "human-resource-department",
-            "parent_department_id": null,
-            "code": "HR-001",
-            "name": "Human Resource Department",
-            "description": "Manages all HR activities.",
-            "head_user_id": 5,
-            "level_no": 1,
-            "reports_to_department_id": null,
-            "approval_mode": "hierarchical",
-            "escalation_mode": "full_chain",
-            "can_create_tasks": true,
-            "can_receive_tasks": true,
-            "is_system_default": false,
-            "is_active": true,
-            "created_by": 1,
-            "created_at": "2026-03-10 10:43:00",
-            "updated_at": "2026-03-10 10:43:00"
-        }
-    ]
-}
-```
-
----
-
-#### `POST /api/company/departments`
-
-Create a new department. **Slug is auto-generated from name.** `company_id` and `created_by` are set automatically.
-
-**Request Body:**
-
-```json
-{
-    "code": "HR-001",
-    "name": "Human Resource Department",
-    "branch_id": 2,
-    "parent_department_id": null,
-    "reports_to_department_id": null,
-    "description": "Manages all HR activities.",
-    "head_user_id": 5,
-    "level_no": 1,
+    "code": "HR-001", "name": "Human Resource Department",
+    "branch_id": 1, "level_no": 1,
     "approval_mode": "hierarchical",
     "escalation_mode": "full_chain",
-    "can_create_tasks": true,
-    "can_receive_tasks": true,
-    "is_active": true
+    "can_create_tasks": true, "can_receive_tasks": true, "is_active": true
 }
 ```
 
-**Validation Rules:**
+| Field | Rules |
+|---|---|
+| `code` | required, string, max:50, unique per company |
+| `name` | required, string, max:150 |
+| `branch_id` | nullable, exists:branches,id |
+| `parent_department_id` | nullable, exists:departments,id |
+| `reports_to_department_id` | nullable, exists:departments,id |
+| `level_no` | nullable, integer, min:1 |
+| `approval_mode` | in: single, multi, hierarchical |
+| `escalation_mode` | in: none, manager_to_ceo, full_chain, custom |
+| `can_create_tasks` | boolean |
+| `can_receive_tasks` | boolean |
+| `is_active` | boolean |
 
-| Field                     | Rules                                             |
-|---------------------------|---------------------------------------------------|
-| `code`                    | required, string, max:50, unique per company      |
-| `name`                    | required, string, max:150                         |
-| `branch_id`               | nullable, exists:branches,id                      |
-| `parent_department_id`    | nullable, exists:departments,id                   |
-| `reports_to_department_id`| nullable, exists:departments,id                   |
-| `description`             | nullable, string                                  |
-| `head_user_id`            | nullable, integer                                 |
-| `level_no`                | nullable, integer, min:1                          |
-| `approval_mode`           | in: single, multi, hierarchical                   |
-| `escalation_mode`         | in: none, manager_to_ceo, full_chain, custom      |
-| `can_create_tasks`        | boolean                                           |
-| `can_receive_tasks`       | boolean                                           |
-| `is_active`               | boolean                                           |
+---
 
-**Success Response (201):**
+### 41. Get Department
+
+**`GET /api/company/departments/{slug}`**
+
+---
+
+### 42. Update Department
+
+**`PUT /api/company/departments/{slug}`** — All fields optional. Slug regenerated if name changes.
+
+---
+
+### 43. Delete Department
+
+**`DELETE /api/company/departments/{slug}`**
+
+> ⚠️ System-default departments (`is_system_default=true`) cannot be deleted — returns 403.
 
 ```json
-{
-    "success": true,
-    "message": "Department created successfully.",
-    "data": {
-        "id": 1,
-        "company_id": 3,
-        "branch_id": 2,
-        "slug": "human-resource-department",
-        "code": "HR-001",
-        "name": "Human Resource Department",
-        ...
-    }
-}
+// 403 Error
+{ "success": false, "message": "System default departments cannot be deleted." }
 ```
 
-**Validation Error (422):**
+---
+
+## 🔗 PROTECTED ROUTES — DEPARTMENT FEATURES
+
+> Assign features to departments. Scoped via department → company. A feature can only be assigned once per department.
+
+---
+
+### 44. List Department Features
+
+**`GET /api/company/department-features`**
+
+| Query Param | Type | Description |
+|---|---|---|
+| `search` | string | Search department or feature name |
 
 ```json
+// 200 Success
 {
-    "success": false,
-    "message": "Validation error.",
-    "errors": {
-        "code": ["This department code already exists in your company."],
-        "approval_mode": ["Approval mode must be: single, multi, or hierarchical."]
-    }
+    "success": true, "data": [{
+        "id": 1, "slug": "hr-department-employee-management",
+        "department": { "id": 1, "name": "Human Resource Department", "code": "HR-001" },
+        "feature": { "id": 3, "name": "Employee Management", "code": "EMP_MGMT", "category": "HR" },
+        "access_level": "full", "is_enabled": true, "assigned_by": 1,
+        "assigned_at": "2026-03-11 10:00:00"
+    }]
 }
 ```
 
 ---
 
-#### `GET /api/company/departments/{slug}`
+### 45. Assign Feature to Department
 
-Get a single department by slug (scoped to the authenticated company).
-
-**Example:** `GET /api/company/departments/human-resource-department`
-
-**Success Response (200):**
+**`POST /api/company/department-features`** — Slug auto-generated as `{dept-slug}-{feature-slug}`.
 
 ```json
-{
-    "success": true,
-    "message": "Department retrieved successfully.",
-    "data": {
-        "id": 1,
-        "code": "HR-001",
-        "name": "Human Resource Department",
-        "slug": "human-resource-department",
-        ...
-    }
-}
+// Request
+{ "department_id": 1, "feature_id": 3, "access_level": "full", "is_enabled": true }
 ```
 
-**Not Found (404):**
+| Field | Rules |
+|---|---|
+| `department_id` | required, exists:departments,id |
+| `feature_id` | required, exists:features,id |
+| `access_level` | in: view, create, edit, delete, approve, full |
+| `is_enabled` | boolean |
 
 ```json
+// 201 Success
+{ "success": true, "message": "Feature assigned to department successfully.", "data": { ... } }
+```
+
+```json
+// 403 Company Mismatch
+{ "success": false, "message": "The selected department does not belong to your company." }
+```
+
+```json
+// 409 Duplicate
+{ "success": false, "message": "This feature is already assigned to the selected department." }
+```
+
+---
+
+### 46. Get Department Feature
+
+**`GET /api/company/department-features/{slug}`**
+
+---
+
+### 47. Update Department Feature
+
+**`PUT /api/company/department-features/{slug}`** — `department_id` and `feature_id` cannot be changed.
+
+```json
+// Request
+{ "access_level": "edit", "is_enabled": false }
+```
+
+---
+
+### 48. Remove Department Feature
+
+**`DELETE /api/company/department-features/{slug}`**
+
+```json
+// 200 Success
+{ "success": true, "message": "Feature removed from department successfully." }
+```
+
+---
+
+## ⚙️ PROTECTED ROUTES — SYSTEM SETTINGS
+
+> Company-scoped. `setting_group` and `setting_key` are immutable after creation. Slug = `{group}-{key}`.
+
+---
+
+### 49. List Settings
+
+**`GET /api/company/settings`**
+
+| Query Param | Type | Description |
+|---|---|---|
+| `search` | string | Search setting_key or setting_group |
+| `group` | string | Filter by exact group name |
+
+```json
+// 200 Success
 {
-    "success": false,
-    "message": "Department not found."
+    "data": [{
+        "id": 1, "slug": "company-timezone",
+        "setting_group": "company", "setting_key": "timezone",
+        "setting_value": "Asia/Kolkata", "casted_value": "Asia/Kolkata",
+        "value_type": "string", "is_public": false
+    }]
 }
 ```
 
 ---
 
-#### `PUT /api/company/departments/{slug}`
+### 50. Create Setting
 
-Update an existing department by slug. All fields are optional.
-
-> If `name` changes, the **slug is automatically regenerated**.
-
-**Example:** `PUT /api/company/departments/human-resource-department`
-
-**Request Body (partial update):**
+**`POST /api/company/settings`** — Slug = `{group}-{key}`.
 
 ```json
+// Request
 {
-    "name": "HR & Administration",
-    "approval_mode": "multi",
-    "is_active": false
+    "setting_group": "company", "setting_key": "timezone",
+    "setting_value": "Asia/Kolkata", "value_type": "string",
+    "branch_id": null, "is_public": false
 }
 ```
 
-**Success Response (200):**
+| Field | Rules |
+|---|---|
+| `setting_group` | required, string, max:80 |
+| `setting_key` | required, string, max:100 |
+| `setting_value` | nullable |
+| `value_type` | in: string, integer, float, boolean, json, text |
+| `branch_id` | nullable, exists:branches,id |
+| `is_public` | boolean |
 
 ```json
+// 409 Conflict
+{ "success": false, "message": "This setting key already exists for the given group and scope." }
+```
+
+---
+
+### 51. Get Setting
+
+**`GET /api/company/settings/{slug}`**
+
+---
+
+### 52. Update Setting
+
+**`PUT /api/company/settings/{slug}`** — `setting_group` and `setting_key` cannot be changed.
+
+```json
+// Request
+{ "setting_value": "42", "value_type": "integer", "is_public": true }
+```
+
+> `casted_value` returns the value cast to its proper PHP type (int, float, bool, array, string).
+
+---
+
+### 53. Delete Setting
+
+**`DELETE /api/company/settings/{slug}`**
+
+---
+
+## 👤 PROTECTED ROUTES — ROLES
+
+> Global (not company-scoped). Any authenticated company user can manage roles. Slug auto-generated from name.
+
+---
+
+### 54. List Roles
+
+**`GET /api/company/roles`**
+
+| Query Param | Type | Description |
+|---|---|---|
+| `search` | string | Search name, description |
+| `is_active` | boolean | `1` or `0` |
+| `per_page` | int | Default: 10 |
+
+```json
+// 200 Paginated Response
 {
-    "success": true,
-    "message": "Department updated successfully.",
-    "data": {
-        "id": 1,
-        "name": "HR & Administration",
-        "slug": "hr-administration",
-        "approval_mode": "multi",
-        "is_active": false,
-        ...
-    }
+    "success": true, "message": "Roles retrieved successfully.",
+    "data": [{ "id": 1, "name": "Branch Manager", "slug": "branch-manager", "is_active": true }],
+    "meta": { "current_page": 1, "total": 5 }
 }
 ```
 
 ---
 
-#### `DELETE /api/company/departments/{slug}`
+### 55. Create Role
 
-Delete a department by slug.
-
-> ⚠️ **System-default departments (`is_system_default = true`) cannot be deleted.** Returns `403 Forbidden`.
-
-**Example:** `DELETE /api/company/departments/human-resource-department`
-
-**Success Response (200):**
+**`POST /api/company/roles`**
 
 ```json
-{
-    "success": true,
-    "message": "Department deleted successfully."
-}
+// Request
+{ "name": "Branch Manager", "description": "Manages branch operations.", "is_active": true }
 ```
 
-**System Default Error (403):**
+| Field | Rules |
+|---|---|
+| `name` | required, string, max:255 |
+| `description` | nullable, string, max:1000 |
+| `is_active` | sometimes, boolean |
 
 ```json
-{
-    "success": false,
-    "message": "System default departments cannot be deleted."
-}
+// 201 Success
+{ "success": true, "message": "Role created successfully.", "data": { "slug": "branch-manager", ... } }
 ```
 
 ---
 
-### 🔗 Protected Routes (Company User — Department Features)
-*(Require Company User Sanctum Token only)*
+### 56. Get Role
 
-> Department Feature routes are **company-scoped via the department**. The department must belong to the authenticated company.
-> `assigned_by` is **automatically set** from the auth token.
-> A feature can only be assigned to a department **once** (unique per department + feature).
-
----
-
-#### `GET /api/company/department-features`
-
-List all department-feature mappings for the authenticated company.
-
-**Query Parameters:**
-
-| Parameter | Type   | Description                               |
-|-----------|--------|-------------------------------------------|
-| `search`  | string | Search by department name or feature name |
-
-**Success Response (200):**
+**`GET /api/company/roles/{slug}`**
 
 ```json
-{
-    "success": true,
-    "message": "Department features retrieved successfully.",
-    "data": [
-        {
-            "id": 1,
-            "slug": "hr-department-employee-management",
-            "department_id": 1,
-            "department": {
-                "id": 1,
-                "name": "Human Resource Department",
-                "slug": "hr-department",
-                "code": "HR-001"
-            },
-            "feature_id": 3,
-            "feature": {
-                "id": 3,
-                "name": "Employee Management",
-                "slug": "employee-management",
-                "code": "EMP_MGMT",
-                "category": "HR"
-            },
-            "access_level": "full",
-            "is_enabled": true,
-            "assigned_by": 1,
-            "assigned_at": "2026-03-10 11:59:00",
-            "created_at": "2026-03-10 11:59:00",
-            "updated_at": "2026-03-10 11:59:00"
-        }
-    ]
-}
+{ "success": true, "message": "Role retrieved successfully.", "data": { ... } }
 ```
 
 ---
 
-#### `POST /api/company/department-features`
+### 57. Update Role
 
-Assign a feature to a department. **Slug is auto-generated** as `{department-slug}-{feature-slug}`.
-
-> Returns `403` if the department doesn’t belong to the authenticated company.
-> Returns `409 Conflict` if the feature is already assigned to that department.
-
-**Request Body:**
+**`PUT /api/company/roles/{slug}`** — All fields optional. Slug regenerated if name changes.
 
 ```json
-{
-    "department_id": 1,
-    "feature_id": 3,
-    "access_level": "full",
-    "is_enabled": true
-}
-```
-
-**Validation Rules:**
-
-| Field           | Rules                                                      |
-|-----------------|------------------------------------------------------------|
-| `department_id` | required, exists:departments,id                            |
-| `feature_id`    | required, exists:features,id                               |
-| `access_level`  | in: view, create, edit, delete, approve, full              |
-| `is_enabled`    | boolean                                                    |
-
-**Success Response (201):**
-
-```json
-{
-    "success": true,
-    "message": "Feature assigned to department successfully.",
-    "data": {
-        "id": 1,
-        "slug": "hr-department-employee-management",
-        "department_id": 1,
-        "department": { ... },
-        "feature_id": 3,
-        "feature": { ... },
-        "access_level": "full",
-        "is_enabled": true,
-        "assigned_by": 1,
-        "assigned_at": "2026-03-10 11:59:00"
-    }
-}
-```
-
-**Conflict Error (409):**
-
-```json
-{
-    "success": false,
-    "message": "This feature is already assigned to the selected department."
-}
-```
-
-**Company Mismatch Error (403):**
-
-```json
-{
-    "success": false,
-    "message": "The selected department does not belong to your company."
-}
+// Request
+{ "name": "Senior Branch Manager", "is_active": false }
 ```
 
 ---
 
-#### `GET /api/company/department-features/{slug}`
+### 58. Delete Role
 
-Get a single department-feature mapping by slug.
-
-**Example:** `GET /api/company/department-features/hr-department-employee-management`
-
-**Success Response (200):**
+**`DELETE /api/company/roles/{slug}`**
 
 ```json
-{
-    "success": true,
-    "message": "Department feature retrieved successfully.",
-    "data": { ... }
-}
+// 200 Success
+{ "success": true, "message": "Role deleted successfully." }
 ```
 
 ---
 
-#### `PUT /api/company/department-features/{slug}`
+## 👥 PROTECTED ROUTES — BRANCH USERS
 
-Update the access level or enable/disable a department-feature mapping.
-
-> `department_id` and `feature_id` **cannot be changed** after assignment.
-
-**Request Body:**
-
-```json
-{
-    "access_level": "edit",
-    "is_enabled": false
-}
-```
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Department feature updated successfully.",
-    "data": {
-        "slug": "hr-department-employee-management",
-        "access_level": "edit",
-        "is_enabled": false,
-        ...
-    }
-}
-```
+> Company-scoped. `company_id` and `created_by` auto-set from token. Soft-deleted via `is_delete=true`.
 
 ---
 
-#### `DELETE /api/company/department-features/{slug}`
+### 59. List Branch Users
 
-Remove a feature from a department.
+**`GET /api/company/branch-users`**
 
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Feature removed from department successfully."
-}
-```
-
----
-
-### ⚙️ Protected Routes (Company User — System Settings)
-*(Require Company User Sanctum Token only)*
-
-> Settings are **company-scoped**. A company user can only access settings belonging to their own company.
-> `company_id` is **automatically set** from the auth token.
-> `setting_group` and `setting_key` are **immutable** after creation.
-> Returns `409 Conflict` if the same (company, branch, group, key) combination already exists.
-
----
-
-#### `GET /api/company/settings`
-
-List all settings for the authenticated company, ordered by `setting_group` then `setting_key`.
-
-**Query Parameters:**
-
-| Parameter | Type   | Description                             |
-|-----------|--------|-----------------------------------------|
-| `search`  | string | Search by setting_key or setting_group  |
-| `group`   | string | Filter by exact setting_group name      |
-
-**Examples:**
-
-```
-GET /api/company/settings
-GET /api/company/settings?group=company
-GET /api/company/settings?search=timezone
-```
-
-**Success Response (200):**
+| Query Param | Type | Description |
+|---|---|---|
+| `search` | string | Search name, email, phone |
+| `is_active` | boolean | `1` or `0` |
+| `per_page` | int | Default: 10 |
 
 ```json
+// 200 Paginated Response
 {
-    "success": true,
-    "message": "Settings retrieved successfully.",
-    "data": [
-        {
-            "id": 1,
-            "company_id": 3,
-            "branch_id": null,
-            "slug": "company-timezone",
-            "setting_group": "company",
-            "setting_key": "timezone",
-            "setting_value": "Asia/Kolkata",
-            "casted_value": "Asia/Kolkata",
-            "value_type": "string",
-            "is_public": false,
-            "created_at": "2026-03-10 15:50:00",
-            "updated_at": "2026-03-10 15:50:00"
-        }
-    ]
-}
-```
-
----
-
-#### `POST /api/company/settings`
-
-Create a new system setting. **Slug is auto-generated** as `{setting_group}-{setting_key}`.
-
-**Request Body:**
-
-```json
-{
-    "setting_group": "company",
-    "setting_key": "timezone",
-    "setting_value": "Asia/Kolkata",
-    "value_type": "string",
-    "branch_id": null,
-    "is_public": false
-}
-```
-
-**Validation Rules:**
-
-| Field           | Rules                                                    |
-|-----------------|----------------------------------------------------------|
-| `setting_group` | required, string, max:80                                 |
-| `setting_key`   | required, string, max:100                                |
-| `setting_value` | nullable                                                 |
-| `value_type`    | in: string, integer, float, boolean, json, text          |
-| `branch_id`     | nullable, exists:branches,id                             |
-| `is_public`     | boolean                                                  |
-
-**Success Response (201):**
-
-```json
-{
-    "success": true,
-    "message": "Setting created successfully.",
-    "data": {
-        "id": 1,
-        "company_id": 3,
-        "slug": "company-timezone",
-        "setting_group": "company",
-        "setting_key": "timezone",
-        "setting_value": "Asia/Kolkata",
-        "casted_value": "Asia/Kolkata",
-        "value_type": "string",
-        "is_public": false
-    }
-}
-```
-
-**Conflict Error (409):**
-
-```json
-{
-    "success": false,
-    "message": "This setting key already exists for the given group and scope."
-}
-```
-
----
-
-#### `GET /api/company/settings/{slug}`
-
-Get a single setting by slug.
-
-**Example:** `GET /api/company/settings/company-timezone`
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Setting retrieved successfully.",
-    "data": {
-        "slug": "company-timezone",
-        "setting_group": "company",
-        "setting_key": "timezone",
-        "setting_value": "Asia/Kolkata",
-        "casted_value": "Asia/Kolkata",
-        ...
-    }
-}
-```
-
----
-
-#### `PUT /api/company/settings/{slug}`
-
-Update a setting's value, type, or visibility.
-
-> `setting_group` and `setting_key` **cannot be changed** after creation.
-
-**Request Body:**
-
-```json
-{
-    "setting_value": "42",
-    "value_type": "integer",
-    "is_public": true
-}
-```
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Setting updated successfully.",
-    "data": {
-        "slug": "company-max-users",
-        "setting_value": "42",
-        "casted_value": 42,
-        "value_type": "integer",
-        "is_public": true
-    }
-}
-```
-
-> **Note:** `casted_value` returns the setting_value cast to its proper PHP type based on `value_type` (integer, float, boolean, JSON array, or string).
-
----
-
-#### `DELETE /api/company/settings/{slug}`
-
-Delete a system setting.
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Setting deleted successfully."
-}
-```
-
----
-
-### 👤 Protected Routes (Company User — Role Management)
-*(Require Company User Sanctum Token only)*
-
-> Roles are **global** (not company-scoped). Any authenticated company user can manage roles.
-> **Slug is auto-generated from name.** Duplicate names get `-2`, `-3` suffixes.
-
----
-
-#### `GET /api/company/roles`
-
-List all roles with **pagination**, **search**, and **status filter**.
-
-**Query Parameters:**
-
-| Parameter   | Type    | Description                            |
-|-------------|---------|----------------------------------------|
-| `search`    | string  | Search by name or description          |
-| `is_active` | boolean | Filter: `1` (active), `0` (inactive)   |
-| `per_page`  | int     | Items per page (default: 10)           |
-
-**Examples:**
-
-```
-GET /api/company/roles
-GET /api/company/roles?search=manager
-GET /api/company/roles?is_active=1&per_page=5
-```
-
-**Paginated Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Roles retrieved successfully.",
-    "data": [
-        {
-            "id": 1,
-            "name": "Branch Manager",
-            "slug": "branch-manager",
-            "description": "Oversees daily branch operations.",
-            "is_active": true,
-            "created_at": "2026-03-11 09:00:00",
-            "updated_at": "2026-03-11 09:00:00"
-        }
-    ],
-    "meta": {
-        "current_page": 1,
-        "per_page": 10,
-        "total": 3,
-        "last_page": 1,
-        "from": 1,
-        "to": 3
-    },
-    "links": {
-        "first": "http://localhost:8000/api/company/roles?page=1",
-        "last": "http://localhost:8000/api/company/roles?page=1",
-        "prev": null,
-        "next": null
-    }
-}
-```
-
----
-
-#### `POST /api/company/roles`
-
-Create a new role. **Slug is auto-generated from name.**
-
-**Request Body:**
-
-```json
-{
-    "name": "Branch Manager",
-    "description": "Oversees daily branch operations.",
-    "is_active": true
-}
-```
-
-**Validation Rules:**
-
-| Field         | Rules                              |
-|---------------|------------------------------------|
-| `name`        | required, string, max:255          |
-| `description` | nullable, string, max:1000         |
-| `is_active`   | sometimes, boolean                 |
-
-**Success Response (201):**
-
-```json
-{
-    "success": true,
-    "message": "Role created successfully.",
-    "data": {
-        "id": 1,
-        "name": "Branch Manager",
-        "slug": "branch-manager",
-        "description": "Oversees daily branch operations.",
-        "is_active": true,
-        "created_at": "2026-03-11 09:00:00",
-        "updated_at": "2026-03-11 09:00:00"
-    }
-}
-```
-
----
-
-#### `GET /api/company/roles/{slug}`
-
-Get a single role by slug.
-
-**Example:** `GET /api/company/roles/branch-manager`
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Role retrieved successfully.",
-    "data": {
-        "id": 1,
-        "name": "Branch Manager",
-        "slug": "branch-manager",
-        "description": "Oversees daily branch operations.",
-        "is_active": true
-    }
-}
-```
-
-**Not Found (404):**
-
-```json
-{
-    "success": false,
-    "message": "Role not found."
-}
-```
-
----
-
-#### `PUT /api/company/roles/{slug}`
-
-Update an existing role. All fields are optional.
-
-> If `name` is changed, the **slug is automatically regenerated**.
-
-**Request Body (partial update):**
-
-```json
-{
-    "name": "Senior Branch Manager",
-    "is_active": false
-}
-```
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Role updated successfully.",
-    "data": {
-        "id": 1,
-        "name": "Senior Branch Manager",
-        "slug": "senior-branch-manager",
-        "is_active": false
-    }
-}
-```
-
----
-
-#### `DELETE /api/company/roles/{slug}`
-
-Delete a role by slug.
-
-**Example:** `DELETE /api/company/roles/branch-manager`
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Role deleted successfully."
-}
-```
-
----
-
-### 👥 Protected Routes (Company User — Branch User Management)
-*(Require Company User Sanctum Token only)*
-
-> Branch Users are **company-scoped**. A company user can only access branch users that belong to their own company.
-> `company_id` and `created_by` are **automatically set** from the auth token.
-> Branch Users are **soft-deleted** (`is_delete = true`) — records are retained for audit.
-
----
-
-#### `GET /api/company/branch-users`
-
-List all branch users for the authenticated company, with **pagination**, **search**, and **status filter**.
-
-**Query Parameters:**
-
-| Parameter   | Type    | Description                                  |
-|-------------|---------|----------------------------------------------|
-| `search`    | string  | Search by name, email, or phone              |
-| `is_active` | boolean | Filter: `1` (active), `0` (inactive)         |
-| `per_page`  | int     | Items per page (default: 10)                 |
-
-**Examples:**
-
-```
-GET /api/company/branch-users
-GET /api/company/branch-users?search=john
-GET /api/company/branch-users?is_active=1&per_page=5
-```
-
-**Paginated Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Branch users retrieved successfully.",
-    "data": [
-        {
-            "id": 1,
-            "company_id": 3,
-            "branch": {
-                "id": 1,
-                "name": "Bhubaneswar Head Office",
-                "slug": "bhubaneswar-head-office"
-            },
-            "role": {
-                "id": 1,
-                "name": "Branch Manager",
-                "slug": "branch-manager"
-            },
-            "name": "John Doe",
-            "email": "john@example.com",
-            "phone": "9876543210",
-            "slug": "john-doe",
-            "is_active": true,
-            "is_delete": false,
-            "created_by": 1,
-            "created_at": "2026-03-11 10:00:00",
-            "updated_at": "2026-03-11 10:00:00"
-        }
-    ],
-    "meta": {
-        "current_page": 1,
-        "per_page": 10,
-        "total": 5,
-        "last_page": 1,
-        "from": 1,
-        "to": 5
-    },
-    "links": {
-        "first": "http://localhost:8000/api/company/branch-users?page=1",
-        "last": "http://localhost:8000/api/company/branch-users?page=1",
-        "prev": null,
-        "next": null
-    }
-}
-```
-
----
-
-#### `POST /api/company/branch-users`
-
-Create a new branch user. **Slug is auto-generated from name.** `company_id` and `created_by` are set automatically.
-
-> Returns `403` if the selected `branch_id` does not belong to the authenticated company.
-
-**Request Body:**
-
-```json
-{
-    "branch_id": 1,
-    "role_id": 1,
-    "name": "John Doe",
-    "email": "john@example.com",
-    "password": "secret123",
-    "password_confirmation": "secret123",
-    "phone": "9876543210",
-    "is_active": true
-}
-```
-
-**Validation Rules:**
-
-| Field                  | Rules                                          |
-|------------------------|------------------------------------------------|
-| `branch_id`            | required, integer, exists:branches,id          |
-| `role_id`              | required, integer, exists:roles,id             |
-| `name`                 | required, string, max:255                      |
-| `email`                | required, email, max:255, unique:branch_users  |
-| `password`             | required, string, min:6, confirmed             |
-| `password_confirmation`| required (must match `password`)               |
-| `phone`                | nullable, string, max:20                       |
-| `is_active`            | sometimes, boolean                             |
-
-**Success Response (201):**
-
-```json
-{
-    "success": true,
-    "message": "Branch user created successfully.",
-    "data": {
-        "id": 1,
-        "company_id": 3,
-        "branch": {
-            "id": 1,
-            "name": "Bhubaneswar Head Office",
-            "slug": "bhubaneswar-head-office"
-        },
-        "role": {
-            "id": 1,
-            "name": "Branch Manager",
-            "slug": "branch-manager"
-        },
-        "name": "John Doe",
-        "email": "john@example.com",
-        "phone": "9876543210",
-        "slug": "john-doe",
-        "is_active": true,
-        "is_delete": false,
-        "created_by": 1,
-        "created_at": "2026-03-11 10:00:00",
-        "updated_at": "2026-03-11 10:00:00"
-    }
-}
-```
-
-**Branch Mismatch Error (403):**
-
-```json
-{
-    "success": false,
-    "message": "The selected branch does not belong to your company."
-}
-```
-
-**Validation Error (422):**
-
-```json
-{
-    "success": false,
-    "message": "The given data was invalid.",
-    "errors": {
-        "email": ["A branch user with this email already exists."],
-        "password": ["Password confirmation does not match."]
-    }
-}
-```
-
----
-
-#### `GET /api/company/branch-users/{slug}`
-
-Get a single branch user by slug (scoped to the authenticated company).
-
-**Example:** `GET /api/company/branch-users/john-doe`
-
-**Success Response (200):**
-
-```json
-{
-    "success": true,
-    "message": "Branch user retrieved successfully.",
-    "data": {
-        "id": 1,
-        "company_id": 3,
+    "data": [{
+        "id": 1, "company_id": 1,
         "branch": { "id": 1, "name": "Bhubaneswar Head Office", "slug": "bhubaneswar-head-office" },
         "role": { "id": 1, "name": "Branch Manager", "slug": "branch-manager" },
-        "name": "John Doe",
-        "email": "john@example.com",
-        "slug": "john-doe",
-        ...
-    }
-}
-```
-
-**Not Found (404):**
-
-```json
-{
-    "success": false,
-    "message": "Branch user not found."
+        "name": "John Doe", "email": "john@abc.com", "phone": "9876543210",
+        "slug": "john-doe", "is_active": true, "is_delete": false
+    }]
 }
 ```
 
 ---
 
-#### `PUT /api/company/branch-users/{slug}`
+### 60. Create Branch User
 
-Update an existing branch user by slug. All fields are optional.
+**`POST /api/company/branch-users`** — Slug auto-generated. Password hashed.
 
-> If `name` is changed, the **slug is automatically regenerated**.
-> If `branch_id` is changed, the branch must still belong to the authenticated company.
-
-**Request Body (partial update):**
+> Returns `403` if `branch_id` does not belong to authenticated company.
 
 ```json
+// Request
 {
-    "name": "John Smith",
-    "phone": "9123456789",
-    "role_id": 2,
-    "is_active": false
+    "branch_id": 1, "role_id": 1,
+    "name": "John Doe", "email": "john@abc.com",
+    "password": "secret123", "password_confirmation": "secret123",
+    "phone": "9876543210", "is_active": true
 }
 ```
 
-**Success Response (200):**
+| Field | Rules |
+|---|---|
+| `branch_id` | required, integer, exists:branches,id |
+| `role_id` | required, integer, exists:roles,id |
+| `name` | required, string, max:255 |
+| `email` | required, email, unique:branch_users |
+| `password` | required, min:6, confirmed |
+| `phone` | nullable, string, max:20 |
+| `is_active` | sometimes, boolean |
 
 ```json
-{
-    "success": true,
-    "message": "Branch user updated successfully.",
-    "data": {
-        "id": 1,
-        "name": "John Smith",
-        "slug": "john-smith",
-        "is_active": false,
-        ...
-    }
-}
+// 201 Success
+{ "success": true, "message": "Branch user created successfully.", "data": { "slug": "john-doe", ... } }
 ```
 
----
-
-#### `DELETE /api/company/branch-users/{slug}`
-
-Soft-delete a branch user (sets `is_delete = true`). The record is retained for audit purposes.
-
-**Example:** `DELETE /api/company/branch-users/john-doe`
-
-**Success Response (200):**
-
 ```json
-{
-    "success": true,
-    "message": "Branch user deleted successfully."
-}
+// 403 Branch Mismatch
+{ "success": false, "message": "The selected branch does not belong to your company." }
 ```
 
 ---
 
-#### `POST /api/company/branch-users/{slug}/change-password`
+### 61. Get Branch User
 
-Change or reset a branch user's password. Used by the company owner to manage branch user credentials.
-
-> `current_password` is **optional** — omit it for an admin password reset.
-> If `current_password` is provided, it is verified against the stored hash before updating.
-
-**Example:** `POST /api/company/branch-users/john-doe/change-password`
-
-**Request Body:**
+**`GET /api/company/branch-users/{slug}`**
 
 ```json
+{ "success": true, "message": "Branch user retrieved successfully.", "data": { ... } }
+```
+
+---
+
+### 62. Update Branch User
+
+**`PUT /api/company/branch-users/{slug}`** — All fields optional. Slug regenerated if name changes.
+
+```json
+// Request
+{ "name": "John Smith", "role_id": 2, "phone": "9000000001", "is_active": false }
+```
+
+> If `branch_id` changes, new branch must still belong to the company.
+
+---
+
+### 63. Delete Branch User (Soft Delete)
+
+**`DELETE /api/company/branch-users/{slug}`** — Sets `is_delete=true`. Record retained for audit.
+
+```json
+// 200 Success
+{ "success": true, "message": "Branch user deleted successfully." }
+```
+
+---
+
+### 64. Change Branch User Password
+
+**`POST /api/company/branch-users/{slug}/change-password`**
+
+> `current_password` is **optional** — omit for admin reset. If provided, it is verified.
+
+```json
+// Request
 {
     "current_password": "old_password",
     "new_password": "new_secure_pass",
@@ -2515,222 +1256,109 @@ Change or reset a branch user's password. Used by the company owner to manage br
 }
 ```
 
-**Validation Rules:**
-
-| Field              | Rules                                          |
-|--------------------|------------------------------------------------|
-| `current_password` | nullable, string (verified if provided)        |
-| `new_password`     | required, string, min:6                        |
-| `confirm_password` | required, string, must match `new_password`    |
-
-**Success Response (200):**
+| Field | Rules |
+|---|---|
+| `current_password` | nullable, string (verified if provided) |
+| `new_password` | required, string, min:6 |
+| `confirm_password` | required, must match `new_password` |
 
 ```json
-{
-    "success": true,
-    "message": "Password updated successfully."
-}
+// 200 Success
+{ "success": true, "message": "Password updated successfully." }
 ```
 
-**Wrong Current Password (422):**
-
 ```json
-{
-    "success": false,
-    "message": "The current password is incorrect."
-}
-```
-
-**Validation Error (422):**
-
-```json
-{
-    "success": false,
-    "message": "The given data was invalid.",
-    "errors": {
-        "confirm_password": ["The password confirmation does not match the new password."]
-    }
-}
+// 422 Wrong Password
+{ "success": false, "message": "The current password is incorrect." }
 ```
 
 ---
 
-## 🔢 Slug Generation Rules
+## 📋 Route Summary Table
 
-Slugs are **automatically generated** from the resource name:
+| Method | URI | Guard | Controller |
+|---|---|---|---|
+| POST | `/api/admin/login` | Public | AdminAuthController@login |
+| POST | `/api/register-company` | Public | CompanyAuthController@register |
+| POST | `/api/company/login` | Public | CompanyAuthController@login |
+| POST | `/api/admin/logout` | admin | AdminAuthController@logout |
+| GET | `/api/admin/profile` | admin | AdminAuthController@profile |
+| PUT | `/api/admin/profile` | admin | AdminAuthController@updateProfile |
+| GET | `/api/admins` | admin | AdminController@index |
+| POST | `/api/admins` | admin | AdminController@store |
+| GET | `/api/admins/{slug}` | admin | AdminController@show |
+| PUT | `/api/admins/{slug}` | admin | AdminController@update |
+| DELETE | `/api/admins/{slug}` | admin | AdminController@destroy |
+| POST | `/api/admins/{slug}/restore` | admin | AdminController@restore |
+| GET | `/api/admin/companies` | admin | AdminCompanyController@index |
+| POST | `/api/admin/companies` | admin | AdminCompanyController@store |
+| GET | `/api/admin/companies/{slug}` | admin | AdminCompanyController@show |
+| PUT | `/api/admin/companies/{slug}` | admin | AdminCompanyController@update |
+| DELETE | `/api/admin/companies/{slug}` | admin | AdminCompanyController@destroy |
+| GET | `/api/companies` | admin+company | CompanyController@index |
+| POST | `/api/companies` | admin+company | CompanyController@store |
+| GET | `/api/companies/{slug}` | admin+company | CompanyController@show |
+| PUT | `/api/companies/{slug}` | admin+company | CompanyController@update |
+| DELETE | `/api/companies/{slug}` | admin+company | CompanyController@destroy |
+| POST | `/api/company/logout` | company | CompanyAuthController@logout |
+| GET | `/api/company/profile` | company | CompanyAuthController@profile |
+| PUT | `/api/company/profile` | company | CompanyAuthController@updateProfile |
+| POST | `/api/company/change-password` | company | CompanyAuthController@changePassword |
+| POST | `/api/logout` | company | AuthController@logout |
+| GET | `/api/company/branches` | company | BranchController@index |
+| POST | `/api/company/branches` | company | BranchController@store |
+| GET | `/api/company/branches/{slug}` | company | BranchController@show |
+| PUT | `/api/company/branches/{slug}` | company | BranchController@update |
+| DELETE | `/api/company/branches/{slug}` | company | BranchController@destroy |
+| GET | `/api/company/features` | company | FeatureController@index |
+| POST | `/api/company/features` | company | FeatureController@store |
+| GET | `/api/company/features/{slug}` | company | FeatureController@show |
+| PUT | `/api/company/features/{slug}` | company | FeatureController@update |
+| DELETE | `/api/company/features/{slug}` | company | FeatureController@destroy |
+| GET | `/api/company/departments` | company | DepartmentController@index |
+| POST | `/api/company/departments` | company | DepartmentController@store |
+| GET | `/api/company/departments/{slug}` | company | DepartmentController@show |
+| PUT | `/api/company/departments/{slug}` | company | DepartmentController@update |
+| DELETE | `/api/company/departments/{slug}` | company | DepartmentController@destroy |
+| GET | `/api/company/department-features` | company | DepartmentFeatureController@index |
+| POST | `/api/company/department-features` | company | DepartmentFeatureController@store |
+| GET | `/api/company/department-features/{slug}` | company | DepartmentFeatureController@show |
+| PUT | `/api/company/department-features/{slug}` | company | DepartmentFeatureController@update |
+| DELETE | `/api/company/department-features/{slug}` | company | DepartmentFeatureController@destroy |
+| GET | `/api/company/settings` | company | SystemSettingController@index |
+| POST | `/api/company/settings` | company | SystemSettingController@store |
+| GET | `/api/company/settings/{slug}` | company | SystemSettingController@show |
+| PUT | `/api/company/settings/{slug}` | company | SystemSettingController@update |
+| DELETE | `/api/company/settings/{slug}` | company | SystemSettingController@destroy |
+| GET | `/api/company/roles` | company | RoleController@index |
+| POST | `/api/company/roles` | company | RoleController@store |
+| GET | `/api/company/roles/{slug}` | company | RoleController@show |
+| PUT | `/api/company/roles/{slug}` | company | RoleController@update |
+| DELETE | `/api/company/roles/{slug}` | company | RoleController@destroy |
+| GET | `/api/company/branch-users` | company | BranchUserController@index |
+| POST | `/api/company/branch-users` | company | BranchUserController@store |
+| GET | `/api/company/branch-users/{slug}` | company | BranchUserController@show |
+| PUT | `/api/company/branch-users/{slug}` | company | BranchUserController@update |
+| DELETE | `/api/company/branch-users/{slug}` | company | BranchUserController@destroy |
+| POST | `/api/company/branch-users/{slug}/change-password` | company | BranchUserController@changePassword |
 
-| Resource | Example Name / Key | Generated Slug |
-|----------|--------------------|----------------|
+---
+
+## 🔢 Slug Generation
+
+Slugs are auto-generated from the resource name using `Str::slug()` with uniqueness guaranteed (`-2`, `-3` suffix on conflict).
+
+| Resource | Example | Generated Slug |
+|---|---|---|
 | Admin | John Doe | `john-doe` |
+| Company | ABC Pvt Ltd | `abc-pvt-ltd` |
 | Branch | Bhubaneswar Head Office | `bhubaneswar-head-office` |
 | Feature | Live Location Tracking | `live-location-tracking` |
 | Department | Human Resource Department | `human-resource-department` |
-| Dept. Feature | hr-department + employee-management | `hr-department-employee-management` |
-| System Setting | group=`company`, key=`timezone` | `company-timezone` |
-| System Setting (exists) | same group + key | `company-timezone-2` |
+| Dept. Feature | HR Dept + Employee Mgmt | `hr-department-employee-management` |
+| Setting | group=company, key=timezone | `company-timezone` |
 | Role | Branch Manager | `branch-manager` |
 | Branch User | John Doe | `john-doe` |
-
----
-
-## 📊 Admin Status Values
-
-| Value | Description |
-|-------|-------------|
-| `active` | Can login and use the API |
-| `inactive` | Cannot login (account disabled) |
-| `blocked` | Cannot login (account blocked) |
-
----
-
-## 🧪 Running Tests
-
-```bash
-# Run all tests
-php artisan test
-
-# Run only Admin API tests
-php artisan test --filter AdminApiTest
-
-# Run with coverage (requires Xdebug)
-php artisan test --coverage
-```
-
-**Test Coverage includes:**
-- ✅ Login with valid/invalid credentials
-- ✅ Login with email and username
-- ✅ Inactive admin cannot login
-- ✅ Authenticated logout
-- ✅ Unauthenticated request returns 401
-- ✅ View own profile
-- ✅ List admins with pagination
-- ✅ Search admins
-- ✅ Filter admins by status
-- ✅ Create admin (auto slug)
-- ✅ Duplicate name generates unique slug (`-2`, `-3`)
-- ✅ View admin by slug
-- ✅ 404 for nonexistent slug
-- ✅ Update admin
-- ✅ Soft delete admin
-- ✅ Self-delete returns 403
-- ✅ Restore soft-deleted admin
-- ✅ Validation errors (422)
-
----
-
-## 📮 Postman Collection
-
-Import `postman_collection.json` from the project root into Postman.
-
-**Steps:**
-1. Open Postman → **Import** → select `postman_collection.json`
-2. Set collection variable `base_url` to `http://localhost:8000/api`
-3. Run **Login** request — token is **auto-saved** to the `{{token}}` variable
-4. All other requests automatically use `{{token}}`
-
----
-
-## 📁 Project Structure
-
-```
-app/
-├── Exceptions/
-│   └── Handler.php                              # JSON error handling for all API routes
-├── Http/
-│   ├── Controllers/API/
-│   │   ├── AdminAuthController.php              # Admin login, logout, profile
-│   │   ├── AdminController.php                  # Admin CRUD + restore
-│   │   ├── AuthController.php                   # Company user register/login/logout
-│   │   ├── BranchController.php                 # Branch CRUD (company scoped)
-│   │   ├── BranchUserController.php             # Branch user CRUD + change-password
-│   │   ├── CompanyController.php                # Company CRUD
-│   │   ├── DepartmentController.php             # Department CRUD (company scoped)
-│   │   ├── DepartmentFeatureController.php      # Department-Feature mappings
-│   │   ├── FeatureController.php                # Feature CRUD (global)
-│   │   ├── RoleController.php                   # Role CRUD (global)
-│   │   └── SystemSettingController.php          # System settings (company scoped)
-│   ├── Requests/
-│   │   ├── Admin/
-│   │   │   ├── CreateAdminRequest.php
-│   │   │   ├── UpdateAdminRequest.php
-│   │   │   ├── LoginRequest.php
-│   │   │   └── UpdateProfileRequest.php
-│   │   ├── Auth/
-│   │   │   └── LoginRequest.php
-│   │   ├── Branch/
-│   │   │   ├── StoreBranchRequest.php
-│   │   │   └── UpdateBranchRequest.php
-│   │   ├── BranchUser/
-│   │   │   ├── StoreBranchUserRequest.php
-│   │   │   ├── UpdateBranchUserRequest.php
-│   │   │   └── ChangeBranchUserPasswordRequest.php
-│   │   ├── Company/
-│   │   │   ├── StoreCompanyRequest.php
-│   │   │   └── UpdateCompanyRequest.php
-│   │   └── Role/
-│   │       ├── StoreRoleRequest.php
-│   │       └── UpdateRoleRequest.php
-│   └── Resources/
-│       ├── AdminResource.php
-│       ├── BranchResource.php
-│       ├── BranchUserResource.php
-│       ├── CompanyResource.php
-│       ├── DepartmentFeatureResource.php
-│       ├── DepartmentResource.php
-│       ├── FeatureResource.php
-│       ├── RoleResource.php
-│       └── SystemSettingResource.php
-├── Models/
-│   ├── Admin.php
-│   ├── Branch.php
-│   ├── BranchUser.php
-│   ├── Company.php
-│   ├── Department.php
-│   ├── DepartmentFeature.php
-│   ├── Feature.php
-│   ├── Role.php
-│   └── User.php
-├── Repositories/
-│   ├── AdminRepository.php
-│   ├── BranchRepository.php
-│   ├── BranchUserRepository.php
-│   ├── CompanyRepository.php
-│   ├── DepartmentFeatureRepository.php
-│   ├── DepartmentRepository.php
-│   ├── FeatureRepository.php
-│   ├── RoleRepository.php
-│   └── SystemSettingRepository.php
-├── Services/
-│   ├── AdminService.php
-│   ├── AuthService.php
-│   ├── BranchService.php
-│   ├── BranchUserService.php
-│   ├── CompanyService.php
-│   ├── DepartmentFeatureService.php
-│   ├── DepartmentService.php
-│   ├── FeatureService.php
-│   ├── RoleService.php
-│   └── SystemSettingService.php
-└── Traits/
-    └── ApiResponseTrait.php
-
-database/
-├── migrations/
-│   ├── *_create_admins_table.php
-│   ├── *_create_companies_table.php
-│   ├── *_create_branches_table.php
-│   ├── *_create_roles_table.php
-│   └── *_create_branch_users_table.php
-└── seeders/
-    ├── AdminSeeder.php
-    └── DatabaseSeeder.php
-
-routes/
-└── api.php
-
-postman_collection.json
-company_postman_collection.json
-```
 
 ---
 
@@ -2738,24 +1366,61 @@ company_postman_collection.json
 
 - ✅ **Password hashing** via `Hash::make()` (bcrypt)
 - ✅ **Sanctum token authentication** — stateless Bearer tokens
-- ✅ **Rate limiting** on login — 5 attempts per minute
-- ✅ **Self-delete protection** — admins cannot delete their own account
-- ✅ **Validation** on all inputs via FormRequest classes
-- ✅ **Soft deletes** — data is never permanently lost
-- ✅ **JSON-only API** — consistent error responses for all exceptions
+- ✅ **Rate limiting** on admin login — 5 attempts/minute
+- ✅ **Self-delete protection** — admins cannot delete own account
+- ✅ **Company scoping** — branch users/branches always validated to company
+- ✅ **Soft deletes** — data retained via `is_delete` flag
+- ✅ **System protection** — system features and default departments cannot be deleted
+
+---
+
+## 📁 Project Structure
+
+```
+app/
+├── Http/Controllers/API/
+│   ├── AdminAuthController.php       # Admin login/logout/profile
+│   ├── AdminController.php           # Admin CRUD + restore
+│   ├── AdminCompanyController.php    # Admin company CRUD
+│   ├── BranchController.php          # Branch CRUD
+│   ├── BranchUserController.php      # Branch user CRUD + change-password
+│   ├── CompanyAuthController.php     # Company register/login/profile
+│   ├── CompanyController.php         # Company CRUD (shared)
+│   ├── DepartmentController.php      # Department CRUD
+│   ├── DepartmentFeatureController.php
+│   ├── FeatureController.php
+│   ├── RoleController.php
+│   └── SystemSettingController.php
+├── Http/Requests/
+│   ├── Admin/        CompanyAuth/        Branch/
+│   ├── BranchUser/   Company/            Role/
+├── Http/Resources/
+│   ├── AdminResource.php, BranchResource.php, BranchUserResource.php
+│   ├── CompanyResource.php, DepartmentResource.php, DepartmentFeatureResource.php
+│   ├── FeatureResource.php, RoleResource.php, SystemSettingResource.php
+├── Models/
+│   ├── Admin.php, Branch.php, BranchUser.php, Company.php
+│   ├── Department.php, DepartmentFeature.php
+│   ├── Feature.php, Role.php, User.php
+├── Repositories/   # One per model
+├── Services/       # One per model
+└── Traits/
+    └── ApiResponseTrait.php
+
+database/migrations/
+├── *_create_admins_table.php
+├── *_create_companies_table.php
+├── *_create_branches_table.php
+├── *_create_roles_table.php
+├── *_create_branch_users_table.php
+└── *_add_auth_fields_to_companies_table.php
+
+routes/api.php
+config/auth.php    # Guards: sanctum (admin), company (Company model)
+```
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License**.
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/your-feature`
-3. Commit your changes: `git commit -m 'Add some feature'`
-4. Push to the branch: `git push origin feature/your-feature`
-5. Open a Pull Request
+MIT License.
