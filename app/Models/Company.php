@@ -3,16 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Company extends Model
+class Company extends Authenticatable
 {
-    use HasFactory;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The table associated with the model.
-     *
-     * @var string
      */
     protected $table = 'companies';
 
@@ -28,6 +29,7 @@ class Company extends Model
         'legal_name',
         'email',
         'phone',
+        'password',
         'website',
         'tax_number',
         'registration_number',
@@ -39,8 +41,20 @@ class Company extends Model
         'state',
         'country',
         'postal_code',
+        'address',
         'logo_path',
         'is_active',
+        'is_delete',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
     /**
@@ -50,6 +64,8 @@ class Company extends Model
      */
     protected $casts = [
         'is_active' => 'boolean',
+        'is_delete' => 'boolean',
+        'password'  => 'hashed',
     ];
 
     /**
@@ -58,5 +74,13 @@ class Company extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    /**
+     * A company has many branches.
+     */
+    public function branches(): HasMany
+    {
+        return $this->hasMany(Branch::class, 'company_id');
     }
 }

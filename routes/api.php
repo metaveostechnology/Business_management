@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\API\AdminAuthController;
+use App\Http\Controllers\API\AdminCompanyController;
 use App\Http\Controllers\API\AdminController;
 use App\Http\Controllers\API\BranchController;
 use App\Http\Controllers\API\BranchUserController;
+use App\Http\Controllers\API\CompanyAuthController;
 use App\Http\Controllers\API\CompanyController;
 use App\Http\Controllers\API\DepartmentController;
 use App\Http\Controllers\API\DepartmentFeatureController;
@@ -21,9 +23,15 @@ Route::prefix('admin')->group(function () {
         ->name('admin.login');
 });
 
-// ── Public Routes (Company Users) ────────────────────────────────────────────
+// ── Public Routes (Company Self-Registration) ───────────────────────────────
+Route::post('/register-company', [CompanyAuthController::class, 'register'])->name('company.self.register');
+
+// ── Public Routes (Company Users — old auth, kept for backward compat) ───────
 Route::post('/register', [\App\Http\Controllers\API\AuthController::class, 'register'])->name('company.register');
 Route::post('/login', [\App\Http\Controllers\API\AuthController::class, 'login'])->name('company.login');
+
+// ── Public Routes (Company Login via companies table) ────────────────────────
+Route::post('/company/login', [CompanyAuthController::class, 'login'])->name('company.auth.login');
 
 // ── Protected Routes (Sanctum - Admins) ──────────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
@@ -64,13 +72,30 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('/{slug}', [CompanyController::class, 'destroy'])->name('companies.destroy');
         }
     );
+
+    // Admin: Company CRUD (with password support, soft-delete)
+    Route::prefix('admin/companies')->group(function () {
+        Route::get('/', [AdminCompanyController::class, 'index'])->name('admin.companies.index');
+        Route::post('/', [AdminCompanyController::class, 'store'])->name('admin.companies.store');
+        Route::get('/{slug}', [AdminCompanyController::class, 'show'])->name('admin.companies.show');
+        Route::put('/{slug}', [AdminCompanyController::class, 'update'])->name('admin.companies.update');
+        Route::delete('/{slug}', [AdminCompanyController::class, 'destroy'])->name('admin.companies.destroy');
+    });
 });
 
-// ── Protected Routes (Sanctum - Company Users) ───────────────────────────────
+// ── Protected Routes (Sanctum - Company Users via companies table) ───────────
 Route::middleware('auth:sanctum,company')->group(function () {
 
-    // Company User Auth routes
+    // Company User Auth routes (for old company_register-based auth)
     Route::post('/logout', [\App\Http\Controllers\API\AuthController::class, 'logout'])->name('company.logout');
+
+    // Company profile & password (new — using companies table)
+    Route::prefix('company')->group(function () {
+        Route::post('/logout', [CompanyAuthController::class, 'logout'])->name('company.auth.logout');
+        Route::get('/profile', [CompanyAuthController::class, 'profile'])->name('company.auth.profile');
+        Route::put('/profile', [CompanyAuthController::class, 'updateProfile'])->name('company.auth.profile.update');
+        Route::post('/change-password', [CompanyAuthController::class, 'changePassword'])->name('company.auth.change-password');
+    });
 
     // Company management routes (slug-based)
     Route::prefix('companies')->group(

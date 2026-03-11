@@ -51,7 +51,7 @@ return [
 
         'company' => [
             'driver'   => 'sanctum',
-            'provider' => 'company_registers',
+            'provider' => 'companies',
         ],
     ],
 
@@ -86,6 +86,11 @@ return [
         'company_registers' => [
             'driver' => 'eloquent',
             'model'  => App\Models\CompanyRegister::class,
+        ],
+
+        'companies' => [
+            'driver' => 'eloquent',
+            'model'  => App\Models\Company::class,
         ],
     ],
 

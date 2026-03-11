@@ -2,7 +2,7 @@
 
 A **production-ready Business Management REST API** built with **Laravel** and **Laravel Sanctum**, following the **Repository + Service Pattern** with full API Resource transformation and FormRequest validation.
 
-Modules covered: **Admin Management**, **Company Management**, **Branch Management**, **Feature Management**, **Department Management**, **Department Features**, **System Settings**, **Roles**, **Branch Users**.
+Modules covered: **Admin Management**, **Company Auth & Management**, **Branch Management**, **Feature Management**, **Department Management**, **Department Features**, **System Settings**, **Roles**, **Branch Users**.
 
 ---
 
@@ -22,10 +22,11 @@ Modules covered: **Admin Management**, **Company Management**, **Branch Manageme
 
 The API maintains two completely isolated classes of users, each with their own dedicated authentication guards via Laravel Sanctum:
 
-1. **Admins:** Authenticate via `/api/admin/login` (default `web`/`sanctum` guard) to access `/api/admins/*` and `/api/companies/*` routes.
-2. **Company Users:** Authenticate via `/api/login` (custom `company` guard) to access `/api/companies/*` and all `/api/company/*` routes including branches, departments, roles, branch users, and more.
+1. **Admins:** Authenticate via `POST /api/admin/login` (admin Sanctum guard) to access `/api/admins/*` and `/api/admin/companies/*`.
+2. **Company Users (new):** Companies authenticate via `POST /api/company/login` using the **companies table** directly. After login they access `/api/company/*` routes (profile, branches, roles, etc.).
+3. **Company Users (legacy):** The old `POST /api/login` using `company_register` table is retained for backward compatibility.
 
-Both **Admins** and **Company Users** are authorized to manage companies. Company Users can only manage resources that **belong to their own company**.
+All company-scoped routes enforce that resources **belong to the authenticated company**.
 
 ---
 
@@ -187,7 +188,109 @@ Authenticate a company user.
 
 ---
 
-### 🛡️ Public Routes (Admin)
+### 🏗️ Public Routes (Company Self-Registration)
+
+#### `POST /api/register-company`
+
+Allow a company to **self-register** on the platform. Creates a record in the `companies` table.
+
+> **Slug is auto-generated from company name.** Password is hashed with `Hash::make()`.
+
+**Request Body:**
+
+```json
+{
+    "name": "ABC Pvt Ltd",
+    "email": "admin@abc.com",
+    "phone": "9876543210",
+    "password": "secret123",
+    "password_confirmation": "secret123",
+    "logo": "https://cdn.example.com/logo.png",
+    "address": "123 Main Street, Delhi",
+    "website": "https://abc.com"
+}
+```
+
+**Validation Rules:**
+
+| Field         | Rules                                   |
+|---------------|-----------------------------------------|
+| `name`        | required, string, max:150               |
+| `email`       | required, email, unique:companies       |
+| `phone`       | required, string, max:20                |
+| `password`    | required, string, min:6, confirmed      |
+| `logo`        | nullable, string, max:255               |
+| `address`     | nullable, string                        |
+| `website`     | nullable, url, max:200                  |
+
+**Success Response (201):**
+
+```json
+{
+    "success": true,
+    "message": "Company registered successfully.",
+    "data": {
+        "id": 1,
+        "slug": "abc-pvt-ltd",
+        "name": "ABC Pvt Ltd",
+        "email": "admin@abc.com",
+        "phone": "9876543210",
+        "is_active": true,
+        "created_at": "2026-03-11 09:00:00"
+    }
+}
+```
+
+---
+
+### 🔐 Public Routes (Company Login — companies table)
+
+#### `POST /api/company/login`
+
+Authenticate a company using the **companies table**. Returns a Sanctum token for use in all protected company routes.
+
+**Request Body:**
+
+```json
+{
+    "email": "admin@abc.com",
+    "password": "secret123"
+}
+```
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Login successful.",
+    "data": {
+        "company": "ABC Pvt Ltd",
+        "email": "admin@abc.com",
+        "token": "1|abc123sanctumtokenhere",
+        "profile": {
+            "id": 1,
+            "slug": "abc-pvt-ltd",
+            "name": "ABC Pvt Ltd",
+            "email": "admin@abc.com",
+            "phone": "9876543210",
+            "website": "https://abc.com",
+            "is_active": true
+        }
+    }
+}
+```
+
+**Error Response (401):**
+
+```json
+{
+    "success": false,
+    "message": "Invalid credentials or account is not active."
+}
+```
+
+---
 
 #### `POST /api/admin/login`
 
@@ -561,10 +664,280 @@ Restore a soft-deleted admin.
 
 ---
 
+### 🔐 Protected Routes (Company — Auth & Profile)
+*(Require Company Sanctum Token — from `POST /api/company/login`)*
+
+> All routes in this section use the token issued by `POST /api/company/login` (companies table).
+
+---
+
+#### `POST /api/company/logout`
+
+Revoke the current company Sanctum token.
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Logged out successfully."
+}
+```
+
+---
+
+#### `GET /api/company/profile`
+
+Get the authenticated company's own profile.
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Profile retrieved successfully.",
+    "data": {
+        "id": 1,
+        "slug": "abc-pvt-ltd",
+        "name": "ABC Pvt Ltd",
+        "email": "admin@abc.com",
+        "phone": "9876543210",
+        "website": "https://abc.com",
+        "logo": null,
+        "address": "123 Main Street, Delhi",
+        "is_active": true,
+        "is_delete": false,
+        "created_at": "2026-03-11 09:00:00",
+        "updated_at": "2026-03-11 09:00:00"
+    }
+}
+```
+
+---
+
+#### `PUT /api/company/profile`
+
+Update the authenticated company's profile.
+
+> `company_id` is fixed — company cannot change its own ID. Slug regenerated if `name` changes.
+
+**Request Body (all fields optional):**
+
+```json
+{
+    "name": "ABC Enterprises Pvt Ltd",
+    "phone": "9000000000",
+    "email": "new@abc.com",
+    "address": "456 New Street, Mumbai",
+    "logo": "https://cdn.example.com/new-logo.png",
+    "website": "https://abc-enterprises.com"
+}
+```
+
+**Validation Rules:**
+
+| Field     | Rules                                          |
+|-----------|------------------------------------------------|
+| `name`    | sometimes, required, string, max:150           |
+| `phone`   | sometimes, required, string, max:20            |
+| `email`   | sometimes, required, email, unique (ignore self) |
+| `address` | nullable, string                               |
+| `logo`    | nullable, string, max:255                      |
+| `website` | nullable, url, max:200                         |
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Profile updated successfully.",
+    "data": {
+        "slug": "abc-enterprises-pvt-ltd",
+        "name": "ABC Enterprises Pvt Ltd",
+        "email": "new@abc.com",
+        ...
+    }
+}
+```
+
+---
+
+#### `POST /api/company/change-password`
+
+Change the company's login password. Requires the current password for verification.
+
+**Request Body:**
+
+```json
+{
+    "current_password": "secret123",
+    "new_password": "newpassword456",
+    "new_password_confirmation": "newpassword456"
+}
+```
+
+**Validation Rules:**
+
+| Field                      | Rules                                    |
+|----------------------------|------------------------------------------|
+| `current_password`         | required, string (verified via Hash::check) |
+| `new_password`             | required, string, min:6, confirmed       |
+| `new_password_confirmation`| required, must match `new_password`      |
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Password updated successfully."
+}
+```
+
+**Wrong Current Password (422):**
+
+```json
+{
+    "success": false,
+    "message": "The current password is incorrect."
+}
+```
+
+---
+
+### 🏢 Protected Routes (Admin — Company CRUD)
+*(Require Admin Sanctum Token only)*
+
+> Admin can **create, read, update, and soft-delete** companies. Soft-delete sets `is_delete = true` and `is_active = false`.
+> Slug is **auto-generated** from company name. Password is **hashed** with `Hash::make()`.
+
+---
+
+#### `GET /api/admin/companies`
+
+List all active companies with pagination and search.
+
+**Query Parameters:**
+
+| Parameter   | Type    | Description                            |
+|-------------|---------|----------------------------------------|
+| `search`    | string  | Search by name, email, phone           |
+| `is_active` | boolean | Filter: `1` (active), `0` (inactive)   |
+| `per_page`  | int     | Items per page (default: 10)           |
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Companies retrieved successfully.",
+    "data": [ { "id": 1, "slug": "abc-pvt-ltd", "name": "ABC Pvt Ltd", ... } ],
+    "meta": { "current_page": 1, "total": 5, ... }
+}
+```
+
+---
+
+#### `POST /api/admin/companies`
+
+Create a new company. Slug is auto-generated, password is hashed.
+
+**Request Body:**
+
+```json
+{
+    "name": "XYZ Corp",
+    "email": "admin@xyz.com",
+    "phone": "9876543210",
+    "password": "secret123",
+    "password_confirmation": "secret123",
+    "legal_name": "XYZ Corporation Pvt Ltd",
+    "website": "https://xyz.com",
+    "currency_code": "INR",
+    "timezone": "Asia/Kolkata",
+    "is_active": true
+}
+```
+
+**Success Response (201):**
+
+```json
+{
+    "success": true,
+    "message": "Company created successfully.",
+    "data": { "id": 2, "slug": "xyz-corp", "name": "XYZ Corp", ... }
+}
+```
+
+---
+
+#### `GET /api/admin/companies/{slug}`
+
+Get a single company by slug.
+
+**Example:** `GET /api/admin/companies/abc-pvt-ltd`
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Company retrieved successfully.",
+    "data": { "slug": "abc-pvt-ltd", "name": "ABC Pvt Ltd", ... }
+}
+```
+
+---
+
+#### `PUT /api/admin/companies/{slug}`
+
+Update a company by slug. All fields are optional.
+
+> If `name` changes, slug is **automatically regenerated**.
+> If `password` is provided, it is **re-hashed** before storing.
+
+**Request Body (partial update):**
+
+```json
+{
+    "name": "ABC Global Ltd",
+    "is_active": false
+}
+```
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Company updated successfully.",
+    "data": { "slug": "abc-global-ltd", "name": "ABC Global Ltd", "is_active": false, ... }
+}
+```
+
+---
+
+#### `DELETE /api/admin/companies/{slug}`
+
+Soft-delete a company (sets `is_delete = true`, `is_active = false`).
+
+**Example:** `DELETE /api/admin/companies/abc-pvt-ltd`
+
+**Success Response (200):**
+
+```json
+{
+    "success": true,
+    "message": "Company deactivated and deleted successfully."
+}
+```
+
+---
+
 ### 🏢 Protected Routes (Company User — Branch Management)
 *(Require Company User Sanctum Token only)*
 
 > All Branch routes are scoped to the authenticated company user's company. A company user **cannot access branches of another company**.
+
 
 ---
 
