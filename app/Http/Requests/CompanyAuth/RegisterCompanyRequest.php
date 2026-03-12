@@ -18,8 +18,7 @@ class RegisterCompanyRequest extends FormRequest
             'email'     => 'required|email|max:150|unique:companies,email',
             'phone'     => 'required|string|max:20',
             'password'  => 'required|string|min:6|confirmed',
-            'logo'      => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
-            'address'   => 'nullable|string',
+            'logo'      => ['nullable', 'sometimes'],
             'website'   => 'nullable|url|max:200',
         ];
     }

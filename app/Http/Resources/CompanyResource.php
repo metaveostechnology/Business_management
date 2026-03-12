@@ -33,6 +33,7 @@ class CompanyResource extends JsonResource
             'is_delete'           => $this->is_delete,
             'created_at'          => $this->created_at?->toDateTimeString(),
             'updated_at'          => $this->updated_at?->toDateTimeString(),
+              'code'                => $this->code,
         ];
     }
 }

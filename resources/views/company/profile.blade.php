@@ -3,106 +3,133 @@
 @section('title', 'Company Profile')
 
 @section('content')
-<div class="card">
-    <h2 class="header-title">My Company Profile</h2>
-    
-    <div id="loading" style="padding: 2rem; text-align: center; color: var(--text-muted);">
-        Initializing...
-    </div>
+<div class="row">
+    <div class="col-xl-12">
+        <div class="card">
+            <div class="card-header border-0">
+                <h4 class="card-title mb-0">My Company Profile</h4>
+            </div>
+            <div class="card-body">
+                <div id="loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
 
-    <div id="profile-content" class="hidden">
-        <div id="error-alert" class="alert alert-error hidden"></div>
-        <div id="success-alert" class="alert alert-success hidden"></div>
+                <div id="profile-content" class="d-none">
+                    <div id="alert-container"></div>
 
-        <form id="profileForm">
-            <!-- Basic Info -->
-            <h3 style="border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1.5rem; color: #334155;">Basic Information</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                <div class="form-group">
-                    <label class="form-label">Company Name *</label>
-                    <input type="text" id="name" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Company Code *</label>
-                    <input type="text" id="code" class="form-control" required placeholder="e.g. COMP-001">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Legal Name *</label>
-                    <input type="text" id="legal_name" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email Address *</label>
-                    <input type="email" id="email" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Phone Number</label>
-                    <input type="text" id="phone" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Website</label>
-                    <input type="url" id="website" class="form-control" placeholder="https://example.com">
-                </div>
-            </div>
+                    <form id="profileForm">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="fs-15 mb-3">Basic Information</h5>
+                            </div>
 
-            <!-- Tax & Legal -->
-            <h3 style="border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; margin: 2rem 0 1.5rem; color: #334155;">Legal & Financial</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                <div class="form-group">
-                    <label class="form-label">Tax Number</label>
-                    <input type="text" id="tax_number" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Registration Number</label>
-                    <input type="text" id="registration_number" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Currency Code</label>
-                    <input type="text" id="currency_code" class="form-control" placeholder="USD">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Timezone</label>
-                    <input type="text" id="timezone" class="form-control" placeholder="UTC">
-                </div>
-            </div>
+                            <div class="col-md-12 mb-4 d-flex align-items-center gap-3">
+                                <div>
+                                    <img id="logoPreview"
+                                         src="{{ asset('appadmin/assets/images/users/avatar-1.jpg') }}"
+                                         alt="Company Logo"
+                                         class="rounded-circle avatar-xl shadow"
+                                         style="object-fit: cover; border: 2px solid #e2e8f0;">
+                                </div>
+                                <div class="flex-grow-1">
+                                    <label for="logo" class="form-label">Company Logo</label>
+                                    <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+                                    <div class="form-text">Optional. Max size: 5MB. Formats: jpeg, png, jpg, gif, webp.</div>
+                                </div>
+                            </div>
 
-            <!-- Address -->
-            <h3 style="border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; margin: 2rem 0 1.5rem; color: #334155;">Address Details</h3>
-            <div class="form-group">
-                <label class="form-label">Address Line 1</label>
-                <input type="text" id="address_line1" class="form-control">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Address Line 2</label>
-                <input type="text" id="address_line2" class="form-control">
-            </div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                <div class="form-group">
-                    <label class="form-label">City</label>
-                    <input type="text" id="city" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">State / Province</label>
-                    <input type="text" id="state" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Country</label>
-                    <input type="text" id="country" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Postal Code</label>
-                    <input type="text" id="postal_code" class="form-control">
-                </div>
-            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Company Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="code" class="form-label">Company Code</label>
+                                <input type="text" class="form-control" id="code" name="code">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="legal_name" class="form-label">Legal Name</label>
+                                <input type="text" class="form-control" id="legal_name" name="legal_name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control bg-light" id="email" name="email" required readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="text" class="form-control" id="phone" name="phone">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="website" class="form-label">Website</label>
+                                <input type="url" class="form-control" id="website" name="website" placeholder="https://example.com">
+                            </div>
+                        </div>
 
-            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end;">
-                <button type="submit" class="btn" id="btnSubmit">Save Profile</button>
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="fs-15 mb-3">Legal & Financial</h5>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="tax_number" class="form-label">Tax Number</label>
+                                <input type="text" class="form-control" id="tax_number" name="tax_number">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="registration_number" class="form-label">Registration Number</label>
+                                <input type="text" class="form-control" id="registration_number" name="registration_number">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="currency_code" class="form-label">Currency Code</label>
+                                <input type="text" class="form-control" id="currency_code" name="currency_code" placeholder="e.g., INR">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="timezone" class="form-label">Timezone</label>
+                                <input type="text" class="form-control" id="timezone" name="timezone" placeholder="e.g., Asia/Kolkata">
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="fs-15 mb-3">Address Details</h5>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="address_line1" class="form-label">Address Line 1</label>
+                                <input type="text" class="form-control" id="address_line1" name="address_line1">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="address_line2" class="form-label">Address Line 2</label>
+                                <input type="text" class="form-control" id="address_line2" name="address_line2">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="city" class="form-label">City</label>
+                                <input type="text" class="form-control" id="city" name="city">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="state" class="form-label">State / Province</label>
+                                <input type="text" class="form-control" id="state" name="state">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="country" class="form-label">Country</label>
+                                <input type="text" class="form-control" id="country" name="country">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="postal_code" class="form-label">Postal Code</label>
+                                <input type="text" class="form-control" id="postal_code" name="postal_code">
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary" id="btnSubmit">
+                                <i class="ri-save-line align-middle me-1"></i> Save Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 @endsection
-
 @push('scripts')
 <script>
 let currentSlug = localStorage.getItem('company_slug') || null;
@@ -110,85 +137,190 @@ let currentSlug = localStorage.getItem('company_slug') || null;
 document.addEventListener('DOMContentLoaded', async () => {
     const loading = document.getElementById('loading');
     const content = document.getElementById('profile-content');
-    
-    // Automatically try to resolve slug
-    if (getAuthToken()) {
-        try {
-            // If we don't know the slug, we could attempt to fetch an index of companies or the user's company relation.
-            // Based on constraints, assume first hit to `companies` index returns user's accessible company logic:
-            const response = await apiRequest('/companies', 'GET');
-            if (response.data && response.data.length > 0) {
-                const company = response.data[0];
-                currentSlug = company.slug;
-                localStorage.setItem('company_slug', currentSlug);
-                populateForm(company);
-            }
-        } catch (error) {
-            console.error(error);
+
+    try {
+        if (!getAuthToken()) {
+            showAlert('danger', 'Authentication token not found. Please login again.');
+            return;
         }
+
+        const response = await apiRequest('/company/profile', 'GET');
+
+        console.log('Profile API response:', response);
+
+        // Your backend returns: { success, message, data: {...profile fields...} }
+        const profileData = response?.data || null;
+
+        if (!profileData) {
+            throw new Error('No profile data found in API response.');
+        }
+
+        if (profileData.slug) {
+            currentSlug = profileData.slug;
+            localStorage.setItem('company_slug', currentSlug);
+        }
+
+        populateForm(profileData);
+
+    } catch (error) {
+        console.error('Failed to load profile', error);
+        showAlert('danger', 'Failed to load company profile.');
+    } finally {
+        loading.classList.add('d-none');
+        content.classList.remove('d-none');
     }
-    
-    loading.classList.add('hidden');
-    content.classList.remove('hidden');
+});
+
+// Logo preview
+document.getElementById('logo')?.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            document.getElementById('logoPreview').src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
 });
 
 function populateForm(data) {
-    const fields = ['name', 'code', 'legal_name', 'email', 'phone', 'website', 'tax_number', 'registration_number', 'currency_code', 'timezone', 'address_line1', 'address_line2', 'city', 'state', 'country', 'postal_code'];
-    fields.forEach(f => {
-        if(document.getElementById(f)) {
-            document.getElementById(f).value = data[f] || '';
+    console.log('Populate form data:', data);
+    const fields = [
+        'name', 'code', 'legal_name', 'email', 'phone', 'website',
+        'tax_number', 'registration_number', 'currency_code', 'timezone',
+        'address_line1', 'address_line2', 'city', 'state', 'country', 'postal_code'
+    ];
+
+    fields.forEach(field => {
+        const el = document.getElementById(field);
+        if (el) {
+            el.value = data[field] ?? '';
         }
     });
+
+    // backend uses logo_path, not logo
+    const logoValue = data.logo_path || '';
+
+    if (logoValue) {
+        const preview = document.getElementById('logoPreview');
+        let logoUrl = logoValue;
+
+        if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
+            preview.src = logoUrl;
+        } else if (logoUrl.startsWith('/storage/')) {
+            preview.src = logoUrl;
+        } else if (logoUrl.startsWith('storage/')) {
+            preview.src = '/' + logoUrl;
+        } else {
+            preview.src = '/storage/' + logoUrl.replace(/^\/+/, '');
+        }
+    }
+
+    const nameEls = document.querySelectorAll('[data-company-name]');
+    nameEls.forEach(el => {
+        el.innerText = data.name || 'Company User';
+    });
+}
+
+function showAlert(type, message) {
+    const container = document.getElementById('alert-container');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 document.getElementById('profileForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const btnSubmit = document.getElementById('btnSubmit');
-    const successAlert = document.getElementById('success-alert');
-    const errorAlert = document.getElementById('error-alert');
-    
+    const originalBtnText = btnSubmit.innerHTML;
+
     btnSubmit.disabled = true;
-    btnSubmit.innerText = 'Saving...';
-    successAlert.classList.add('hidden');
-    errorAlert.classList.add('hidden');
-    
-    const payload = {};
-    const fields = ['name', 'code', 'legal_name', 'email', 'phone', 'website', 'tax_number', 'registration_number', 'currency_code', 'timezone', 'address_line1', 'address_line2', 'city', 'state', 'country', 'postal_code'];
-    fields.forEach(f => {
-        if(document.getElementById(f)) {
-            payload[f] = document.getElementById(f).value;
+    btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Saving...';
+
+    document.getElementById('alert-container').innerHTML = '';
+
+    const formData = new FormData();
+    const fields = [
+        'name', 'code', 'legal_name', 'phone', 'website',
+        'tax_number', 'registration_number', 'currency_code', 'timezone',
+        'address_line1', 'address_line2', 'city', 'state', 'country', 'postal_code'
+    ];
+
+    fields.forEach(field => {
+        const el = document.getElementById(field);
+        if (el) {
+            formData.append(field, el.value.trim());
         }
     });
 
+    const logoInput = document.getElementById('logo');
+    if (logoInput && logoInput.files.length > 0) {
+        formData.append('logo', logoInput.files[0]);
+    }
+
     try {
-        let endpoint = '/companies';
-        let method = 'POST';
-        
-        if (currentSlug) {
-            endpoint = `/companies/${currentSlug}`;
-            method = 'PUT';
+        if (!currentSlug) {
+            throw new Error('Company slug not found. Please login again.');
         }
 
-        const data = await apiRequest(endpoint, method, payload);
-        
-        successAlert.innerText = 'Profile saved successfully!';
-        successAlert.classList.remove('hidden');
-        
-        if (data.data && data.data.slug) {
-            currentSlug = data.data.slug;
-            localStorage.setItem('company_slug', currentSlug);
+        formData.append('_method', 'PUT');
+
+        const response = await fetch(API_BASE + `/companies/${currentSlug}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${getAuthToken()}`,
+                'Accept': 'application/json'
+            },
+            body: formData
+        });
+
+        const result = await response.json();
+        console.log('Update response:', result);
+
+        if (!response.ok) {
+            throw { data: result };
         }
+
+        showAlert('success', result.message || 'Profile updated successfully!');
+
+        // backend returns { success, message, data: {...updated company...} }
+        if (result.data) {
+            if (result.data.slug) {
+                currentSlug = result.data.slug;
+                localStorage.setItem('company_slug', currentSlug);
+            }
+
+            populateForm(result.data);
+        }
+
     } catch (error) {
-        errorAlert.innerText = 'Failed to save profile. ' + (error.data?.message || '');
-        if (error.data?.errors) {
-            errorAlert.innerText += ' ' + Object.values(error.data.errors).flat().join(' ');
+        console.error('Update error:', error);
+
+        let msg = 'Failed to save profile.';
+
+        if (error.data?.message) {
+            msg += ' ' + error.data.message;
         }
-        errorAlert.classList.remove('hidden');
+
+        if (error.data?.errors) {
+            msg += '<br>' + Object.values(error.data.errors).flat().join('<br>');
+        }
+
+        if (error.message) {
+            msg += ' ' + error.message;
+        }
+
+        showAlert('danger', msg);
     } finally {
         btnSubmit.disabled = false;
-        btnSubmit.innerText = 'Save Profile';
-        window.scrollTo(0, 0);
+        btnSubmit.innerHTML = originalBtnText;
     }
 });
 </script>

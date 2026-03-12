@@ -48,7 +48,6 @@
     </div>
 </div>
 @endsection
-
 @push('scripts')
 <script>
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -66,7 +65,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     btnSubmit.innerText = 'Signing In...';
 
     try {
-        const response = await fetch(apiBaseUrl + '/login', {
+        const response = await fetch(apiBaseUrl + '/company/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -78,9 +77,20 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         const data = await response.json();
         
         if (response.ok && data.success) {
-            setAuthToken(data.token);
+            const token = data.data?.token || null;
+            const profile = data.data?.profile || null;
+
+            if (token) {
+                setAuthToken(token);
+            }
+
+            if (profile?.slug) {
+                localStorage.setItem('company_slug', profile.slug);
+            }
+
             successAlert.innerText = 'Login successful! Redirecting...';
             successAlert.classList.remove('hidden');
+
             setTimeout(() => {
                 window.location.href = "{{ route('company.frontend.dashboard') }}";
             }, 1000);

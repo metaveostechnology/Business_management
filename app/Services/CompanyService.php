@@ -34,24 +34,14 @@ class CompanyService
      */
     public function createCompany(array $data): \App\Models\Company
     {
-        // Extract raw password before we unset it (since it doesn't belong in the companies table)
-        $rawPassword = $data['password'] ?? null;
-        unset($data['password']);
+        $data['slug']     = $this->generateUniqueSlug($data['name']);
+        $data['code']     = 'CMP-' . strtoupper(Str::random(6));
 
-        $data['slug'] = $this->generateUniqueSlug($data['name']);
-
-        $company = $this->companyRepository->create($data);
-
-        // Provision the company_register login if email and password were provided
-        if (!empty($data['email']) && !empty($rawPassword)) {
-            \App\Models\CompanyRegister::create([
-                'email' => $data['email'],
-                'password' => \Illuminate\Support\Facades\Hash::make($rawPassword),
-                'is_active' => $data['is_active'] ?? true, // Synchronize active state
-            ]);
+        if (!empty($data['password'])) {
+            $data['password'] = \Illuminate\Support\Facades\Hash::make($data['password']);
         }
 
-        return $company;
+        return $this->companyRepository->create($data);
     }
 
     /**

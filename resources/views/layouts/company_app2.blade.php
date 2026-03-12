@@ -146,7 +146,7 @@
             // Logout logic
             document.getElementById('btnLogout')?.addEventListener('click', async () => {
                 try {
-                    await fetch(apiBaseUrl + '/logout', {
+                    await fetch(apiBaseUrl + '/company/logout', {
                         method: 'POST',
                         headers: {
                             'Authorization': 'Bearer ' + getAuthToken(),

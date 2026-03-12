@@ -12,7 +12,7 @@ class CompanyRepository
      */
     public function getAll(string $search = null, mixed $isActive = null, int $perPage = 10): LengthAwarePaginator
     {
-        $query = Company::query();
+        $query = Company::where('is_delete', false);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -36,7 +36,7 @@ class CompanyRepository
      */
     public function findBySlug(string $slug): ?Company
     {
-        return Company::where('slug', $slug)->first();
+        return Company::where('slug', $slug)->where('is_delete', false)->first();
     }
 
     /**

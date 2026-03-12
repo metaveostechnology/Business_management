@@ -69,13 +69,7 @@
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a class="nav-link menu-link {{ request()->routeIs('company.frontend.profile') ? 'active' : '' }}"
-                        href="{{ route('company.frontend.profile') }}">
-                        <i class="ri-building-line"></i>
-                        <span data-key="t-profile">Company Profile</span>
-                    </a>
-                </li>
+               
 
                 {{-- Add more company nav items here as the portal grows --}}
 

@@ -35,11 +35,12 @@ class AdminCompanyController extends Controller
                 });
             }
 
-            if (!is_null($request->query('is_active')) && $request->query('is_active') !== '') {
+            if ($request->has('is_active') && $request->query('is_active') !== '') {
                 $query->where('is_active', (bool) $request->query('is_active'));
             }
 
-            $paginator = $query->latest()->paginate((int) $request->query('per_page', 10));
+            $perPage   = (int) $request->query('per_page', 10);
+            $paginator = $query->latest()->paginate($perPage);
 
             return $this->paginatedResponse(
                 paginator: $paginator,
@@ -60,16 +61,11 @@ class AdminCompanyController extends Controller
         try {
             $data             = $request->validated();
             $data['slug']     = $this->generateUniqueSlug($data['name']);
-            $data['code']     = $data['code'] ?? 'CMP-' . strtoupper(Str::random(6));
+            $data['code']     = 'CMP-' . strtoupper(Str::random(6));
             $data['password'] = Hash::make($data['password']);
 
             if ($request->hasFile('logo')) {
                 $data['logo_path'] = $request->file('logo')->store('companylogo', 'public');
-                unset($data['logo']);
-            } elseif (isset($data['logo'])) {
-                // Support backward compatibility if someone sends a URL string
-                $data['logo_path'] = $data['logo'];
-                unset($data['logo']);
             }
 
             $company = Company::create($data);
@@ -130,10 +126,6 @@ class AdminCompanyController extends Controller
                     \Illuminate\Support\Facades\Storage::disk('public')->delete($company->logo_path);
                 }
                 $data['logo_path'] = $request->file('logo')->store('companylogo', 'public');
-                unset($data['logo']);
-            } elseif (array_key_exists('logo', $data)) {
-                $data['logo_path'] = $data['logo'];
-                unset($data['logo']);
             }
 
             $company->update($data);
@@ -160,7 +152,7 @@ class AdminCompanyController extends Controller
 
             $company->update(['is_delete' => true, 'is_active' => false]);
 
-            return $this->noContentResponse('Company deactivated and deleted successfully.');
+            return $this->successResponse(null, 'Company deactivated and deleted successfully.');
         } catch (Throwable $e) {
             Log::error('AdminCompany destroy error', ['slug' => $slug, 'error' => $e->getMessage()]);
             return $this->errorResponse('An error occurred while deleting the company.', statusCode: 500);

@@ -31,8 +31,18 @@
 
     <form id="registerForm">
         <div class="form-group">
+            <label class="form-label">Company Name</label>
+            <input type="text" id="name" class="form-control" required placeholder="ABC Pvt Ltd">
+        </div>
+
+        <div class="form-group">
             <label class="form-label">Email Address</label>
             <input type="email" id="email" class="form-control" required placeholder="business@example.com">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="text" id="phone" class="form-control" required placeholder="9000000000">
         </div>
 
         <div class="form-group">
@@ -59,7 +69,9 @@
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    const name = document.getElementById('name').value;
     const email = document.getElementById('email').value;
+    const phone = document.getElementById('phone').value;
     const password = document.getElementById('password').value;
     const password_confirmation = document.getElementById('password_confirmation').value;
     
@@ -80,13 +92,13 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     btnSubmit.innerText = 'Creating Account...';
 
     try {
-        const response = await fetch(apiBaseUrl + '/register', {
+        const response = await fetch(apiBaseUrl + '/register-company', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ email, password, password_confirmation })
+            body: JSON.stringify({ name, email, phone, password, password_confirmation })
         });
         
         const data = await response.json();
