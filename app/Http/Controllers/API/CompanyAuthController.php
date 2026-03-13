@@ -40,7 +40,17 @@ class CompanyAuthController extends Controller
 
             // Map `logo` file upload to `logo_path` column
             if ($request->hasFile('logo')) {
-                $data['logo_path'] = $request->file('logo')->store('companylogo', 'public');
+                $path = $request->file('logo')->store('companylogo', 'public');
+                $data['logo_path'] = $path;
+
+                // Double Storage: Copy to public/storage
+                $source = storage_path('app/public/' . $path);
+                $destination = public_path('storage/' . $path);
+                $destDir = dirname($destination);
+                if (!is_dir($destDir)) {
+                    mkdir($destDir, 0755, true);
+                }
+                copy($source, $destination);
             }
 
             $company = Company::create($data);
@@ -146,11 +156,28 @@ class CompanyAuthController extends Controller
 
             // Map `logo` file upload to `logo_path` column
             if ($request->hasFile('logo')) {
-                // Delete old logo
-                if ($company->logo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($company->logo_path)) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($company->logo_path);
+                // Delete old logo from both locations
+                if ($company->logo_path) {
+                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($company->logo_path)) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($company->logo_path);
+                    }
+                    $publicFilePath = public_path('storage/' . $company->logo_path);
+                    if (file_exists($publicFilePath)) {
+                        unlink($publicFilePath);
+                    }
                 }
-                $data['logo_path'] = $request->file('logo')->store('companylogo', 'public');
+                
+                $path = $request->file('logo')->store('companylogo', 'public');
+                $data['logo_path'] = $path;
+
+                // Double Storage: Copy to public/storage
+                $source = storage_path('app/public/' . $path);
+                $destination = public_path('storage/' . $path);
+                $destDir = dirname($destination);
+                if (!is_dir($destDir)) {
+                    mkdir($destDir, 0755, true);
+                }
+                copy($source, $destination);
             }
 
             // Regenerate slug if name changes

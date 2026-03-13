@@ -181,6 +181,13 @@
                 const user = getCompanyUser();
                 const displayName = user?.name || user?.email || 'Company User';
                 document.querySelectorAll('[data-company-name]').forEach(el => el.textContent = displayName);
+
+                if (user?.logo) {
+                    const logoUrl = `/storage/${user.logo}`;
+                    document.querySelectorAll('[data-company-logo]').forEach(el => {
+                        el.src = logoUrl;
+                    });
+                }
             });
         })();
 
