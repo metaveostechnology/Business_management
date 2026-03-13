@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Role Permission Manager</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .permission-row:nth-child(even) { background-color: rgba(17, 82, 212, 0.02); }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex h-screen w-full overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="flex w-64 flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-full">
+<div class="flex items-center gap-3 px-6 py-6 border-b border-slate-100 dark:border-slate-800">
+<div class="flex size-8 items-center justify-center rounded-lg bg-primary text-white">
+<span class="material-symbols-outlined">security</span>
+</div>
+<h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Role Manager</h2>
+</div>
+<div class="flex flex-col gap-1 p-4 overflow-y-auto grow">
+<p class="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Core Roles</p>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+<span class="text-sm font-medium">Super Admin</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border-r-4 border-primary">
+<span class="material-symbols-outlined text-[20px]">corporate_fare</span>
+<span class="text-sm font-semibold">Company Admin</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-[20px]">manage_accounts</span>
+<span class="text-sm font-medium">Department Manager</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-[20px]">person_outline</span>
+<span class="text-sm font-medium">Standard Employee</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-[20px]">support_agent</span>
+<span class="text-sm font-medium">Support Staff</span>
+</button>
+<p class="px-3 pb-2 pt-6 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Custom Roles</p>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+<span class="text-sm font-medium">Data Analyst</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-[20px]">shopping_cart</span>
+<span class="text-sm font-medium">Procurement</span>
+</button>
+</div>
+<div class="p-4 border-t border-slate-100 dark:border-slate-800">
+<button class="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 py-2.5 text-sm font-medium text-slate-500 hover:border-primary hover:text-primary transition-all">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                    Create New Role
+                </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex flex-1 flex-col overflow-hidden">
+<!-- Header Bar -->
+<header class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-8 py-4">
+<div class="flex flex-col">
+<h1 class="text-xl font-bold text-slate-900 dark:text-white">Manage Permissions</h1>
+<div class="flex items-center gap-2 text-xs text-slate-400">
+<span>Settings</span>
+<span class="material-symbols-outlined text-[12px]">chevron_right</span>
+<span>Role Permissions</span>
+<span class="material-symbols-outlined text-[12px]">chevron_right</span>
+<span class="text-primary font-medium">Company Admin</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
+<input class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-10 pr-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Search permissions..." type="text"/>
+</div>
+<button class="flex items-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-[20px]">history</span>
+                        Audit Log
+                    </button>
+<button class="flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-bold text-white shadow-sm shadow-primary/30 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-[20px]">save</span>
+                        Save Changes
+                    </button>
+<div class="ml-2 size-10 rounded-full border-2 border-white bg-slate-200 dark:bg-slate-700 overflow-hidden shadow-sm" data-alt="User profile avatar circle" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAyDTtDQL8oj5DJKjiYtYtCgr_CtdVY2FBiJZxipk7pcrSUOWJT_hAPnH9KezBgbLrkxLlJyI1jqaB9ZZAIEE2Lr2a76352DKj2t_0gifK2AQXB1SRYYF6AoxwqLRYgt-tYZMH1ZJ4M6z2UCqxUHTPELs0Nz0zRXrMWqBLiX571LjEUKx7eY4xLy5rhaQMZRpr_4GHz9PtCzbGjPnYgMMlCDt-PAyZ9DgnCyZ02v0STxLHDWsSlR0O_oc8aCGQNZuy61mWVk4zcU8Ns')"></div>
+</div>
+</header>
+<!-- Permissions Matrix -->
+<div class="flex-1 overflow-y-auto bg-slate-50 dark:bg-background-dark p-8">
+<div class="mb-6 flex items-center justify-between rounded-xl bg-primary/5 border border-primary/20 p-6">
+<div class="flex items-center gap-4">
+<div class="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-[32px]">shield_person</span>
+</div>
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Role: Company Admin</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Total permissions assigned: 42 modules</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="rounded-lg bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shadow-sm">Reset to Default</button>
+<button class="rounded-lg bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shadow-sm">Copy Permissions</button>
+</div>
+</div>
+<div class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+<table class="w-full text-left">
+<thead>
+<tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Module &amp; Action</th>
+<th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">View</th>
+<th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">Create</th>
+<th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">Edit</th>
+<th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">Delete</th>
+<th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">Export</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<!-- Dashboard Module -->
+<tr class="permission-row group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="flex size-8 items-center justify-center rounded bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+<span class="material-symbols-outlined text-[18px]">dashboard</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-slate-900 dark:text-white">Dashboard</p>
+<p class="text-xs text-slate-400">Analytics and overview widgets</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+</tr>
+<!-- Finance Module -->
+<tr class="permission-row group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="flex size-8 items-center justify-center rounded bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+<span class="material-symbols-outlined text-[18px]">payments</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-slate-900 dark:text-white">Finance</p>
+<p class="text-xs text-slate-400">Invoices, payroll, and expenses</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+</tr>
+<!-- HR Module -->
+<tr class="permission-row group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="flex size-8 items-center justify-center rounded bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+<span class="material-symbols-outlined text-[18px]">groups</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-slate-900 dark:text-white">HR Management</p>
+<p class="text-xs text-slate-400">Employees, leave, and recruiting</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+</tr>
+<!-- CRM Module -->
+<tr class="permission-row group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="flex size-8 items-center justify-center rounded bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">
+<span class="material-symbols-outlined text-[18px]">contact_page</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-slate-900 dark:text-white">CRM</p>
+<p class="text-xs text-slate-400">Leads, contacts, and pipelines</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+</tr>
+<!-- Settings Module -->
+<tr class="permission-row group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="flex size-8 items-center justify-center rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-slate-900 dark:text-white">System Settings</p>
+<p class="text-xs text-slate-400">API, integrations, and branding</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input checked="" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+<td class="px-6 py-4 text-center"><input class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Action Footer Inside Content -->
+<div class="mt-8 flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-6">
+<div class="flex items-center gap-2">
+<span class="flex size-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400 italic">Unsaved changes detected in HR Management</p>
+</div>
+<div class="flex gap-4">
+<button class="rounded-lg px-6 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">Discard</button>
+<button class="rounded-lg bg-primary px-8 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">Apply Changes</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -531,7 +531,7 @@ Logo validation (file upload):
 // Request (all optional)
 {
     "name": "ABC Enterprises", "phone": "9000000001",
-    "email": "new@abc.com", "address": "New Address",
+    "email": "new@abc.com", "address": "New Address",  
     "logo": "https://cdn.example.com/logo.png",
     "website": "https://abc-new.com"
 }
