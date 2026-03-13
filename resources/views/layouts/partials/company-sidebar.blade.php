@@ -69,7 +69,21 @@
                     </a>
                 </li>
 
-               
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('company.frontend.branches') ? 'active' : '' }}"
+                        href="{{ route('company.frontend.branches') }}">
+                        <i class="ri-git-branch-line"></i>
+                        <span data-key="t-branches">Branch Management</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('company.frontend.roles') ? 'active' : '' }}"
+                        href="{{ route('company.frontend.roles') }}">
+                        <i class="ri-user-settings-line"></i>
+                        <span data-key="t-roles">Role Management</span>
+                    </a>
+                </li>
 
                 {{-- Add more company nav items here as the portal grows --}}
 
