@@ -118,11 +118,14 @@
                             </div>
                         </div>
 
-                        <div class="text-end">
-                            <button type="submit" class="btn btn-primary" id="btnSubmit">
-                                <i class="ri-save-line align-middle me-1"></i> Save Profile
-                            </button>
-                        </div>
+                      <div class="text-end d-flex justify-content-end gap-2">
+    <button type="button" class="btn btn-light" id="btnCancel">
+        <i class="ri-arrow-left-line align-middle me-1"></i> Cancel
+    </button>
+    <button type="submit" class="btn btn-primary" id="btnSubmit">
+        <i class="ri-save-line align-middle me-1"></i> Save Profile
+    </button>
+</div>
                     </form>
                 </div>
             </div>
@@ -134,6 +137,9 @@
 <script>
 let currentSlug = localStorage.getItem('company_slug') || null;
 
+document.getElementById('btnCancel')?.addEventListener('click', function () {
+    window.location.href = "{{ route('company.frontend.dashboard') }}";
+});
 document.addEventListener('DOMContentLoaded', async () => {
     const loading = document.getElementById('loading');
     const content = document.getElementById('profile-content');
@@ -185,6 +191,8 @@ document.getElementById('logo')?.addEventListener('change', function(e) {
 
 function populateForm(data) {
     console.log('Populate form data:', data);
+    originalCode = data.code || '';
+
     const fields = [
         'name', 'code', 'legal_name', 'email', 'phone', 'website',
         'tax_number', 'registration_number', 'currency_code', 'timezone',
@@ -198,8 +206,7 @@ function populateForm(data) {
         }
     });
 
-    // backend uses logo_path, not logo
-    const logoValue = data.logo_path || '';
+    const logoValue = data.logo || data.logo_path || '';
 
     if (logoValue) {
         const preview = document.getElementById('logoPreview');
@@ -221,7 +228,6 @@ function populateForm(data) {
         el.innerText = data.name || 'Company User';
     });
 }
-
 function showAlert(type, message) {
     const container = document.getElementById('alert-container');
     if (!container) return;
@@ -254,11 +260,19 @@ document.getElementById('profileForm').addEventListener('submit', async (e) => {
     ];
 
     fields.forEach(field => {
-        const el = document.getElementById(field);
-        if (el) {
-            formData.append(field, el.value.trim());
+    const el = document.getElementById(field);
+    if (!el) return;
+
+    const value = el.value.trim();
+
+    if (field === 'code') {
+        if (value !== originalCode) {
+            formData.append('code', value);
         }
-    });
+    } else {
+        formData.append(field, value);
+    }
+});
 
     const logoInput = document.getElementById('logo');
     if (logoInput && logoInput.files.length > 0) {

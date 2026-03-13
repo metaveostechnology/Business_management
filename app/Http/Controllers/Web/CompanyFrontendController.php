@@ -32,8 +32,21 @@ class CompanyFrontendController extends Controller
     }
 
     /**
-     * Show the company profile setup/edit page.
+     * Show the company branches management page.
      */
+    public function branches()
+    {
+        return view('company.branches.index');
+    }
+
+    /**
+     * Show the company roles management page.
+     */
+    public function roles()
+    {
+        return view('company.roles.index');
+    }
+
     public function profile()
     {
         return view('company.profile');
