@@ -27,10 +27,12 @@ class RoleController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            $companyId = auth()->id();
             $paginator = $this->roleService->getRoles(
-                search:   $request->query('search'),
-                isActive: $request->query('is_active'),
-                perPage:  (int) $request->query('per_page', 10)
+                companyId: $companyId,
+                search:    $request->query('search'),
+                isActive:  $request->query('is_active'),
+                perPage:   (int) $request->query('per_page', 10)
             );
 
             return $this->paginatedResponse(
@@ -50,7 +52,10 @@ class RoleController extends Controller
     public function store(StoreRoleRequest $request): JsonResponse
     {
         try {
-            $role = $this->roleService->createRole($request->validated());
+            $data = $request->validated();
+            $data['company_id'] = auth()->id();
+            
+            $role = $this->roleService->createRole($data);
             return $this->createdResponse(new RoleResource($role), 'Role created successfully.');
         } catch (Throwable $e) {
             Log::error('Role store error', ['error' => $e->getMessage()]);
@@ -64,7 +69,8 @@ class RoleController extends Controller
     public function show(string $slug): JsonResponse
     {
         try {
-            $role = $this->roleService->findBySlug($slug);
+            $companyId = auth()->id();
+            $role = $this->roleService->findBySlug($slug, $companyId);
             if (!$role) {
                 return $this->errorResponse('Role not found.', statusCode: 404);
             }
@@ -81,7 +87,8 @@ class RoleController extends Controller
     public function update(UpdateRoleRequest $request, string $slug): JsonResponse
     {
         try {
-            $role = $this->roleService->findBySlug($slug);
+            $companyId = auth()->id();
+            $role = $this->roleService->findBySlug($slug, $companyId);
             if (!$role) {
                 return $this->errorResponse('Role not found.', statusCode: 404);
             }
@@ -99,7 +106,8 @@ class RoleController extends Controller
     public function destroy(string $slug): JsonResponse
     {
         try {
-            $role = $this->roleService->findBySlug($slug);
+            $companyId = auth()->id();
+            $role = $this->roleService->findBySlug($slug, $companyId);
             if (!$role) {
                 return $this->errorResponse('Role not found.', statusCode: 404);
             }

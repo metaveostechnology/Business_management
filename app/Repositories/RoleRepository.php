@@ -11,11 +11,12 @@ class RoleRepository
      * Get paginated roles with optional search & filter.
      */
     public function getAll(
+        int $companyId,
         string $search = null,
         mixed $isActive = null,
         int $perPage = 10
     ): LengthAwarePaginator {
-        $query = Role::query();
+        $query = Role::where('company_id', $companyId);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -34,9 +35,9 @@ class RoleRepository
     /**
      * Find a role by its slug.
      */
-    public function findBySlug(string $slug): ?Role
+    public function findBySlug(string $slug, int $companyId): ?Role
     {
-        return Role::where('slug', $slug)->first();
+        return Role::where('company_id', $companyId)->where('slug', $slug)->first();
     }
 
     /**
@@ -67,9 +68,10 @@ class RoleRepository
     /**
      * Check if a slug already exists (optionally excluding a given role id).
      */
-    public function slugExists(string $slug, int $excludeId = null): bool
+    public function slugExists(string $slug, int $companyId, int $excludeId = null): bool
     {
-        return Role::where('slug', $slug)
+        return Role::where('company_id', $companyId)
+            ->where('slug', $slug)
             ->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))
             ->exists();
     }

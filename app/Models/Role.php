@@ -21,6 +21,7 @@ class Role extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'company_id',
         'name',
         'slug',
         'description',
@@ -42,6 +43,14 @@ class Role extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    /**
+     * A role belongs to a company.
+     */
+    public function company(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Company::class, 'company_id');
     }
 
     /**
