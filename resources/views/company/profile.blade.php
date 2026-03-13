@@ -166,6 +166,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             localStorage.setItem('company_slug', currentSlug);
         }
 
+        // Update company_user for global layout use
+        localStorage.setItem('company_user', JSON.stringify(profileData));
+
         populateForm(profileData);
 
     } catch (error) {

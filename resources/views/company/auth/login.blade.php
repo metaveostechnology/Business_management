@@ -84,8 +84,11 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
                 setAuthToken(token);
             }
 
-            if (profile?.slug) {
-                localStorage.setItem('company_slug', profile.slug);
+            if (profile) {
+                localStorage.setItem('company_user', JSON.stringify(profile));
+                if (profile.slug) {
+                    localStorage.setItem('company_slug', profile.slug);
+                }
             }
 
             successAlert.innerText = 'Login successful! Redirecting...';

@@ -78,6 +78,14 @@
                 </li>
 
                 <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('company.frontend.departments') ? 'active' : '' }}"
+                        href="{{ route('company.frontend.departments') }}">
+                        <i class="ri-building-line"></i>
+                        <span data-key="t-departments">Department Management</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('company.frontend.roles') ? 'active' : '' }}"
                         href="{{ route('company.frontend.roles') }}">
                         <i class="ri-user-settings-line"></i>

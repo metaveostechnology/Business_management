@@ -2,36 +2,41 @@
 
 namespace App\Http\Requests\Department;
 
+use App\Models\Department;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateDepartmentRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
+        $slug = $this->route('slug'); // correct route parameter
+        $departmentId = Department::where('slug', $slug)->value('id');
+
         return [
-            'branch_id'                => ['sometimes', 'required', 'exists:branches,id'],
+            'code' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('departments', 'code')
+                    ->where(function ($query) {
+                        return $query->where('company_id', auth()->id());
+                    })
+                    ->ignore($departmentId),
+            ],
+            'name'                     => ['sometimes', 'required', 'string', 'max:150'],
+            'branch_id'                => ['nullable', 'exists:branches,id'],
             'parent_department_id'     => ['nullable', 'exists:departments,id'],
-            'code'                     => ['sometimes', 'required', 'string', 'max:50'],
-            'name'                     => ['sometimes', 'required', 'string', 'max:100'],
-            'description'              => ['nullable', 'string', 'max:500'],
-            'head_user_id'             => ['nullable', 'exists:branch_users,id'],
-            'level_no'                 => ['nullable', 'integer', 'min:1'],
             'reports_to_department_id' => ['nullable', 'exists:departments,id'],
-            'approval_mode'            => ['nullable', 'string', 'in:auto,manual'],
-            'escalation_mode'          => ['nullable', 'string', 'in:auto,manual'],
+            'level_no'                 => ['nullable', 'integer', 'min:1'],
+            'approval_mode'            => ['nullable', 'string', 'in:single,multi,hierarchical'],
+            'escalation_mode'          => ['nullable', 'string', 'in:none,manager_to_ceo,full_chain,custom'],
             'can_create_tasks'         => ['nullable', 'boolean'],
             'can_receive_tasks'        => ['nullable', 'boolean'],
             'is_active'                => ['nullable', 'boolean'],

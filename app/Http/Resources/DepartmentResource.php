@@ -32,7 +32,6 @@ class DepartmentResource extends JsonResource
             'can_receive_tasks' => (bool)$this->can_receive_tasks,
             'is_system_default' => (bool)$this->is_system_default,
             'is_active' => (bool)$this->is_active,
-            'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

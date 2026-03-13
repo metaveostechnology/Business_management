@@ -22,19 +22,23 @@ class StoreDepartmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'branch_id'                => ['required', 'exists:branches,id'],
+            'code'                     => [
+                'required', 
+                'string', 
+                'max:50', 
+                \Illuminate\Validation\Rule::unique('departments')->where(function ($query) {
+                    return $query->where('company_id', auth()->id());
+                })
+            ],
+            'name'                     => ['required', 'string', 'max:150'],
+            'branch_id'                => ['nullable', 'exists:branches,id'],
             'parent_department_id'     => ['nullable', 'exists:departments,id'],
-            'code'                     => ['required', 'string', 'max:50'],
-            'name'                     => ['required', 'string', 'max:100'],
-            'description'              => ['nullable', 'string', 'max:500'],
-            'head_user_id'             => ['nullable', 'exists:branch_users,id'],
-            'level_no'                 => ['nullable', 'integer', 'min:1'],
             'reports_to_department_id' => ['nullable', 'exists:departments,id'],
-            'approval_mode'            => ['nullable', 'string', 'in:auto,manual'],
-            'escalation_mode'          => ['nullable', 'string', 'in:auto,manual'],
+            'level_no'                 => ['nullable', 'integer', 'min:1'],
+            'approval_mode'            => ['nullable', 'string', 'in:single,multi,hierarchical'],
+            'escalation_mode'          => ['nullable', 'string', 'in:none,manager_to_ceo,full_chain,custom'],
             'can_create_tasks'         => ['nullable', 'boolean'],
             'can_receive_tasks'        => ['nullable', 'boolean'],
-            'is_system_default'        => ['nullable', 'boolean'],
             'is_active'                => ['nullable', 'boolean'],
         ];
     }
