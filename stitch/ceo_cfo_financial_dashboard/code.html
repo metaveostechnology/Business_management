@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Executive Financial Health Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-4">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">query_stats</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">FinExec Suite</h2>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<label class="flex flex-col min-w-40 h-10 max-w-64 hidden md:flex">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+<div class="text-slate-500 dark:text-slate-400 flex items-center justify-center pl-4">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input w-full border-none bg-transparent focus:ring-0 text-sm" placeholder="Search accounts, reports..."/>
+</div>
+</label>
+<div class="flex gap-2">
+<button class="relative flex items-center justify-center rounded-lg size-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+</button>
+<button class="flex items-center justify-center rounded-lg size-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" data-alt="User profile avatar of the CEO" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAZgg0LI5twz0LcEXskmYf_O9fHz6uRAXb8zapaCx01O4wOqOMBSdELnaw02vAQQt26TT2jBQ3Z-yPfZRaYvAsDEoK9rB9HoiXYTRq3vzbvjtl5jUnWp7EFWMrq29cjs5rfopGrXBKdJUk9j6ZwA3hHa1SZW82ju-kRIp1ESfx2MOtY5qaUhGGBSvP0rWXuHepaE7rWQ6FctqP7wAyy1rtdLigTHXgPIi-b3IUA6b8Imm32IXZNL-_alXgX2OtziGhHJWP6f5slJYQU");'></div>
+</div>
+</header>
+<div class="flex flex-1">
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 hidden lg:flex flex-col gap-6">
+<div class="flex flex-col gap-1">
+<p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Dashboards</p>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm">Overview</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined">account_balance</span>
+<span class="text-sm">Treasury</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-sm">Financial Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="text-sm flex-1">Approvals</span>
+<span class="bg-primary text-white text-[10px] px-1.5 py-0.5 rounded-full">12</span>
+</a>
+</nav>
+</div>
+<div class="flex flex-col gap-1">
+<p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Strategy</p>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span class="text-sm">Task Board</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined">verified_user</span>
+<span class="text-sm">Audit &amp; Compliance</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-4 rounded-xl bg-primary/5 border border-primary/10">
+<p class="text-xs font-semibold text-primary mb-1">FY2024 Budget Progress</p>
+<div class="w-full bg-primary/10 rounded-full h-1.5 mb-2">
+<div class="bg-primary h-1.5 rounded-full" style="width: 65%"></div>
+</div>
+<p class="text-[10px] text-slate-500">65% of annual budget utilized</p>
+</div>
+</aside>
+<main class="flex-1 p-6 overflow-y-auto">
+<div class="flex flex-wrap items-end justify-between gap-4 mb-8">
+<div>
+<h1 class="text-2xl font-bold text-slate-900 dark:text-white">Financial Health Overview</h1>
+<p class="text-slate-500 dark:text-slate-400">Quarterly Performance &amp; Strategic Operations</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+                            Oct 1, 2023 - Dec 31, 2023
+                        </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90">
+<span class="material-symbols-outlined text-lg">download</span>
+                            Export Report
+                        </button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Revenue</p>
+<span class="material-symbols-outlined text-primary">trending_up</span>
+</div>
+<p class="text-2xl font-bold text-slate-900 dark:text-white">$4.28M</p>
+<p class="text-emerald-600 text-sm font-medium mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">arrow_upward</span>
+                            +12.5% <span class="text-slate-400 font-normal">vs last quarter</span>
+</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Net Profit</p>
+<span class="material-symbols-outlined text-primary">account_balance_wallet</span>
+</div>
+<p class="text-2xl font-bold text-slate-900 dark:text-white">$1.12M</p>
+<p class="text-rose-600 text-sm font-medium mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">arrow_downward</span>
+                            -2.3% <span class="text-slate-400 font-normal">vs last quarter</span>
+</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Cash on Hand</p>
+<span class="material-symbols-outlined text-primary">payments</span>
+</div>
+<p class="text-2xl font-bold text-slate-900 dark:text-white">$850,400</p>
+<p class="text-emerald-600 text-sm font-medium mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">arrow_upward</span>
+                            +5.1% <span class="text-slate-400 font-normal">at bank</span>
+</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Operating Margin</p>
+<span class="material-symbols-outlined text-primary">speed</span>
+</div>
+<p class="text-2xl font-bold text-slate-900 dark:text-white">26.4%</p>
+<p class="text-emerald-600 text-sm font-medium mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">arrow_upward</span>
+                            +0.8% <span class="text-slate-400 font-normal">efficiency</span>
+</p>
+</div>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
+<div class="xl:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-bold text-lg">Cashflow Status</h3>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-primary"></span>
+<span class="text-xs text-slate-500">Inflow</span>
+</div>
+<select class="bg-slate-50 dark:bg-slate-800 border-none text-xs rounded-lg py-1 px-3 focus:ring-1 focus:ring-primary">
+<option>Last 6 Months</option>
+<option>Last Year</option>
+</select>
+</div>
+</div>
+<div class="h-64 w-full relative">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 800 240">
+<defs>
+<lineargradient id="gradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#1152d4" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#1152d4" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,180 C50,160 100,200 150,150 C200,100 250,120 300,80 C350,40 400,90 450,70 C500,50 550,100 600,60 C650,20 700,50 800,30 L800,240 L0,240 Z" fill="url(#gradient)"></path>
+<path d="M0,180 C50,160 100,200 150,150 C200,100 250,120 300,80 C350,40 400,90 450,70 C500,50 550,100 600,60 C650,20 700,50 800,30" fill="none" stroke="#1152d4" stroke-width="3"></path>
+<line class="dark:stroke-slate-700" stroke="#cbd5e1" stroke-width="1" x1="0" x2="800" y1="240" y2="240"></line>
+<line class="dark:stroke-slate-800" stroke="#f1f5f9" stroke-width="1" x1="0" x2="800" y1="180" y2="180"></line>
+<line class="dark:stroke-slate-800" stroke="#f1f5f9" stroke-width="1" x1="0" x2="800" y1="120" y2="120"></line>
+<line class="dark:stroke-slate-800" stroke="#f1f5f9" stroke-width="1" x1="0" x2="800" y1="60" y2="60"></line>
+</svg>
+<div class="flex justify-between mt-4 px-2 text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+<span>Jul</span>
+<span>Aug</span>
+<span>Sep</span>
+<span>Oct</span>
+<span>Nov</span>
+<span>Dec</span>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-bold text-lg">Revenue vs Expense</h3>
+<span class="material-symbols-outlined text-slate-400">more_horiz</span>
+</div>
+<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-2">
+<div class="flex justify-between text-sm">
+<span class="text-slate-500">Gross Revenue</span>
+<span class="font-bold">$1.2M</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 85%"></div>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between text-sm">
+<span class="text-slate-500">Total Expenses</span>
+<span class="font-bold">$840K</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden">
+<div class="bg-rose-500 h-full rounded-full" style="width: 60%"></div>
+</div>
+</div>
+<div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+<p class="text-sm font-bold mb-4">Balance Sheet Snapshot</p>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
+<p class="text-[10px] text-slate-500 uppercase font-bold">Total Assets</p>
+<p class="text-lg font-bold">$12.4M</p>
+</div>
+<div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
+<p class="text-[10px] text-slate-500 uppercase font-bold">Liabilities</p>
+<p class="text-lg font-bold">$4.1M</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<h3 class="font-bold text-lg">Financial Approval Center</h3>
+<span class="px-2 py-1 bg-primary/10 text-primary text-xs font-bold rounded">5 Urgent Pending</span>
+</div>
+<div class="p-0 overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 font-medium">
+<tr>
+<th class="px-6 py-3">Request Details</th>
+<th class="px-6 py-3">Department</th>
+<th class="px-6 py-3">Amount</th>
+<th class="px-6 py-3">Status</th>
+<th class="px-6 py-3 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr>
+<td class="px-6 py-4">
+<div class="font-medium text-slate-900 dark:text-white">New Server Infrastructure</div>
+<div class="text-xs text-slate-400">AWS Reserved Instances</div>
+</td>
+<td class="px-6 py-4">IT Ops</td>
+<td class="px-6 py-4 font-bold text-slate-900 dark:text-white">$45,000</td>
+<td class="px-6 py-4">
+<span class="flex items-center gap-1.5 text-amber-600 font-medium">
+<span class="size-1.5 rounded-full bg-amber-600"></span>
+                                                Pending Review
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="size-8 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">check</span>
+</button>
+<button class="size-8 rounded bg-rose-100 dark:bg-rose-900/30 text-rose-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4">
+<div class="font-medium text-slate-900 dark:text-white">Q4 Marketing Campaign</div>
+<div class="text-xs text-slate-400">Social Media &amp; OOH</div>
+</td>
+<td class="px-6 py-4">Marketing</td>
+<td class="px-6 py-4 font-bold text-slate-900 dark:text-white">$120,000</td>
+<td class="px-6 py-4">
+<span class="flex items-center gap-1.5 text-amber-600 font-medium">
+<span class="size-1.5 rounded-full bg-amber-600"></span>
+                                                In Progress
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="size-8 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">check</span>
+</button>
+<button class="size-8 rounded bg-rose-100 dark:bg-rose-900/30 text-rose-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4">
+<div class="font-medium text-slate-900 dark:text-white">Annual CRM Renewal</div>
+<div class="text-xs text-slate-400">Salesforce Enterprise</div>
+</td>
+<td class="px-6 py-4">Sales</td>
+<td class="px-6 py-4 font-bold text-slate-900 dark:text-white">$88,500</td>
+<td class="px-6 py-4">
+<span class="flex items-center gap-1.5 text-amber-600 font-medium">
+<span class="size-1.5 rounded-full bg-amber-600"></span>
+                                                Pending Review
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="size-8 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">check</span>
+</button>
+<button class="size-8 rounded bg-rose-100 dark:bg-rose-900/30 text-rose-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 mt-auto border-t border-slate-100 dark:border-slate-800 text-center">
+<button class="text-primary text-sm font-bold hover:underline">View All 12 Approval Requests</button>
+</div>
+</div>
+<div class="flex flex-col gap-6">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+<h3 class="font-bold text-lg mb-4">Financial Alerts</h3>
+<div class="flex flex-col gap-4">
+<div class="flex gap-3 items-start p-3 rounded-lg bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/20">
+<span class="material-symbols-outlined text-rose-600">error</span>
+<div>
+<p class="text-sm font-bold text-rose-900 dark:text-rose-400">Over-budget Alert</p>
+<p class="text-xs text-rose-800 dark:text-rose-300/70">Legal department has exceeded Q3 forecast by 14%.</p>
+</div>
+</div>
+<div class="flex gap-3 items-start p-3 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20">
+<span class="material-symbols-outlined text-amber-600">warning</span>
+<div>
+<p class="text-sm font-bold text-amber-900 dark:text-amber-400">Cashflow Warning</p>
+<p class="text-xs text-amber-800 dark:text-amber-300/70">Projected dip in mid-Jan liquidity due to tax payments.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-bold text-lg">Assigned Tasks</h3>
+<button class="text-primary text-xs font-bold">New Task</button>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex items-center gap-3 group">
+<div class="size-5 rounded border border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer"></div>
+<div class="flex-1">
+<p class="text-sm font-medium">Approve Q4 dividend payout</p>
+<p class="text-[10px] text-slate-400 italic">Due Tomorrow</p>
+</div>
+</div>
+<div class="flex items-center gap-3 group">
+<div class="size-5 rounded border border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer"></div>
+<div class="flex-1">
+<p class="text-sm font-medium">Review M&amp;A due diligence</p>
+<p class="text-[10px] text-slate-400 italic">Due in 3 days</p>
+</div>
+</div>
+<div class="flex items-center gap-3 group">
+<div class="size-5 rounded border-2 border-primary bg-primary/20 flex items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined text-[14px] text-primary">check</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-medium line-through text-slate-400">Finalize budget for R&amp;D</p>
+<p class="text-[10px] text-slate-400 italic">Completed</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

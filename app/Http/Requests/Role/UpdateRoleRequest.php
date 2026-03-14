@@ -21,8 +21,19 @@ class UpdateRoleRequest extends FormRequest
      */
     public function rules(): array
     {
+        $roleSlug = $this->route('slug');
+        $roleId = \App\Models\Role::where('slug', $roleSlug)->where('company_id', auth()->id())->value('id');
+
         return [
-            'name'        => 'sometimes|required|string|max:255',
+            'name' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:255',
+                \Illuminate\Validation\Rule::unique('roles')->where(function ($query) {
+                    return $query->where('company_id', auth()->id());
+                })->ignore($roleId)
+            ],
             'description' => 'nullable|string|max:1000',
             'is_active'   => 'sometimes|boolean',
         ];

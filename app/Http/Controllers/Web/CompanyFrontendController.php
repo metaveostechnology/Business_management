@@ -52,11 +52,13 @@ class CompanyFrontendController extends Controller
         return view('company.profile');
     }
 
+
+
     /**
-     * Show the company departments management page.
+     * Show the company branch users management page.
      */
-    public function departments()
+    public function branchUsers()
     {
-        return view('company.departments.index');
+        return view('company.branch-users.index');
     }
 }

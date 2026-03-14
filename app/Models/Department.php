@@ -22,8 +22,6 @@ class Department extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'company_id',
-        'branch_id',
         'slug',
         'parent_department_id',
         'code',
@@ -64,21 +62,7 @@ class Department extends Model
 
     // ── Relationships ─────────────────────────────────────────────────────────
 
-    /**
-     * The company this department belongs to.
-     */
-    public function company(): BelongsTo
-    {
-        return $this->belongsTo(Company::class , 'company_id');
-    }
 
-    /**
-     * The branch this department is assigned to.
-     */
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class , 'branch_id');
-    }
 
     /**
      * The parent department (hierarchical).

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HR Management Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-size: 20px; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 lg:px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8 bg-primary/10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined">account_tree</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">Nexus HR</h2>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-primary text-sm font-semibold border-b-2 border-primary pb-1" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Employees</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Payroll</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Recruitment</a>
+</nav>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<div class="hidden sm:flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+<div class="text-slate-400 flex items-center justify-center pl-3">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="w-full border-none bg-transparent focus:ring-0 text-sm placeholder:text-slate-500" placeholder="Search team..." value=""/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-slate-500 cursor-pointer">notifications</span>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-9 ring-2 ring-primary/20" data-alt="User profile avatar of HR administrator" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBj3opnrYtO8IbY_MOZp4k5JLeEQW8sTYCTonmTZehR3c9yLdHXeShqCgxOtwJzU1JS-j3HEQEmP1FfEitlyuSupli_l_Tct0gE4brD8fF2Mz2sp-nDpglmIzEsOUSTViB0N_mvZnPqTVUTUDuG8rUld4yXWB2qMaxiwt-SMh9I8Q4qfA2sJcEtzRDio7n4Ag0xo9wJmox27B-KrUIEzEkJWpB9UhczhKMTNPdo6MiN73YQLtE-Udi6Kr6R_adEFOQiNFqmiVz5XXpA");'></div>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-8">
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 text-primary rounded-lg">
+<span class="material-symbols-outlined">group</span>
+</div>
+<span class="text-green-600 text-xs font-bold bg-green-50 px-2 py-1 rounded">+2.5%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Employees</p>
+<p class="text-slate-900 dark:text-white text-2xl font-bold mt-1">1,248</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-orange-100 text-orange-600 rounded-lg">
+<span class="material-symbols-outlined">how_to_reg</span>
+</div>
+<span class="text-red-600 text-xs font-bold bg-red-50 px-2 py-1 rounded">-1.2%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Present Today</p>
+<p class="text-slate-900 dark:text-white text-2xl font-bold mt-1">1,102</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-purple-100 text-purple-600 rounded-lg">
+<span class="material-symbols-outlined">event_busy</span>
+</div>
+<span class="text-green-600 text-xs font-bold bg-green-50 px-2 py-1 rounded">+5%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Pending Leaves</p>
+<p class="text-slate-900 dark:text-white text-2xl font-bold mt-1">14</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-blue-100 text-blue-600 rounded-lg">
+<span class="material-symbols-outlined">person_search</span>
+</div>
+<span class="text-slate-400 text-xs font-bold bg-slate-50 px-2 py-1 rounded">Stable</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Open Roles</p>
+<p class="text-slate-900 dark:text-white text-2xl font-bold mt-1">8</p>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2 space-y-8">
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<h3 class="text-lg font-bold">Employee Directory</h3>
+<button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition">Add Employee</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs uppercase font-bold">
+<tr>
+<th class="px-6 py-4">Employee</th>
+<th class="px-6 py-4">Department</th>
+<th class="px-6 py-4">Status</th>
+<th class="px-6 py-4">Performance</th>
+<th class="px-6 py-4 text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover" data-alt="Employee profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCjJrfcyHhw5kaoQVAQd4wMEmxkRsyvR4LcfiqndJV4EO5Zps08eOlwXMaN4DVw5aKUfKOMvogpoaJr4et0G59EfBN4NToaJNmiXV6JX41O9O2zDCk71FjxXbu2SN3QkgAvmTtGH5TN4k84u-qZ9bGo_vD86OZsxRvaAn6jo16exTqtmIFTsvGZ4XBA8EZjU4khe13ot-7oOBuw85BiQog5e3jxT0omPmpivtTX29v_bn3KXcWVWOt22XuHwnEqFBD7c0UQCUMuaxh6');"></div>
+<div>
+<p class="font-semibold text-sm">Alex Johnson</p>
+<p class="text-xs text-slate-500">UX Designer</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">Design</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">Active</span>
+</td>
+<td class="px-6 py-4">
+<div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 85%"></div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<span class="material-symbols-outlined text-slate-400 cursor-pointer">more_vert</span>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover" data-alt="Employee profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBwWXjXVETfXW91hCUmb0leTmIaHQMs2A6Vgsu2Mvs_3y_qEi0P7I8jXM140Gsx2kJOmvXQM3f1FgeoCNf7jeAfrDl1g8_84opO0n00229Y6cRqKKYhg8dnIG1cthwMIo2ltbcRV6--Ux0grunDyWS-uaQejqgx-j4Oeor_PaM-fXgsgvtPjLF7sWLcHij2QvMBHx3q4ZpzlwWS8fgtDG5AdxhDidoNRndb7G_BUJiL9_gfrGjVy_H_lO1FnMc8P5niLZtQjkZyEVMs');"></div>
+<div>
+<p class="font-semibold text-sm">Sarah Miller</p>
+<p class="text-xs text-slate-500">Backend Dev</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">Engineering</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">Active</span>
+</td>
+<td class="px-6 py-4">
+<div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 92%"></div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<span class="material-symbols-outlined text-slate-400 cursor-pointer">more_vert</span>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover" data-alt="Employee profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBJwbQjxhUQw6Q1Cy3xsvmW9jtwclPQkmjbZAOqkEU46mgt_olnoxMwBdlYZNHNOoxjtlPm9QjK0oc_-0PPFxBJhAF1pnf8sOyo_ZUQVkcPGuNDBszsMid2K1NRkngl9Q4Ah0BvRLUm5ks1zNqsoEPWVMfxLHRM1LkiyDWR6g4usqbmMhUs2plCKIdgY95ES4tJG_CNhmDrWczo_lVTdwzehLTaVd8w4nqMFwAWM6s5o279zYcgYnewGs20gEc7LNPsrM9bB3Wq6qHn');"></div>
+<div>
+<p class="font-semibold text-sm">James Wilson</p>
+<p class="text-xs text-slate-500">HR Manager</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">People</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded">Remote</span>
+</td>
+<td class="px-6 py-4">
+<div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 78%"></div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<span class="material-symbols-outlined text-slate-400 cursor-pointer">more_vert</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+<h3 class="text-lg font-bold mb-6">Recruitment Tracking Funnel</h3>
+<div class="space-y-6">
+<div class="relative">
+<div class="flex justify-between mb-2 text-sm">
+<span class="font-medium">Total Applicants</span>
+<span class="text-slate-500">452</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-8 rounded-lg overflow-hidden flex">
+<div class="bg-primary w-full h-full flex items-center px-4"></div>
+</div>
+</div>
+<div class="relative">
+<div class="flex justify-between mb-2 text-sm">
+<span class="font-medium">Screening / Interview</span>
+<span class="text-slate-500">128</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-8 rounded-lg overflow-hidden flex">
+<div class="bg-primary/70 w-[60%] h-full flex items-center px-4"></div>
+</div>
+</div>
+<div class="relative">
+<div class="flex justify-between mb-2 text-sm">
+<span class="font-medium">Final Round</span>
+<span class="text-slate-500">34</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-8 rounded-lg overflow-hidden flex">
+<div class="bg-primary/50 w-[25%] h-full flex items-center px-4"></div>
+</div>
+</div>
+<div class="relative">
+<div class="flex justify-between mb-2 text-sm">
+<span class="font-medium">Hired</span>
+<span class="text-slate-500">8</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-8 rounded-lg overflow-hidden flex">
+<div class="bg-green-500 w-[10%] h-full flex items-center px-4"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="space-y-8">
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold">Attendance</h3>
+<div class="text-primary text-sm font-medium cursor-pointer">May 2024</div>
+</div>
+<div class="grid grid-cols-7 gap-2 text-center text-xs font-bold text-slate-400 mb-2">
+<div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
+</div>
+<div class="grid grid-cols-7 gap-2">
+<div class="h-8 flex items-center justify-center text-slate-300 text-xs">28</div>
+<div class="h-8 flex items-center justify-center text-slate-300 text-xs">29</div>
+<div class="h-8 flex items-center justify-center text-slate-300 text-xs">30</div>
+<div class="h-8 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium">1</div>
+<div class="h-8 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium">2</div>
+<div class="h-8 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium">3</div>
+<div class="h-8 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium">4</div>
+<div class="h-8 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium">5</div>
+<div class="h-8 flex items-center justify-center rounded-lg bg-primary text-white text-xs font-bold">6</div>
+<div class="h-8 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium">7</div>
+<div class="h-8 flex items-center justify-center rounded-lg bg-orange-100 text-orange-600 text-xs font-bold">8</div>
+<div class="h-8 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium">9</div>
+<div class="h-8 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium">10</div>
+<div class="h-8 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium">11</div>
+</div>
+<div class="mt-6 space-y-3">
+<div class="flex items-center gap-3 text-sm">
+<div class="size-2 rounded-full bg-primary"></div>
+<span class="text-slate-600 dark:text-slate-400">Today</span>
+</div>
+<div class="flex items-center gap-3 text-sm">
+<div class="size-2 rounded-full bg-orange-500"></div>
+<span class="text-slate-600 dark:text-slate-400">Company Holiday</span>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+<h3 class="text-lg font-bold mb-4">Leave Requests</h3>
+<div class="space-y-4">
+<div class="flex items-center gap-4 p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+<div class="size-10 rounded-full bg-cover shrink-0" data-alt="Employee requesting leave" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCxTYosSPflWONBKF2nniuaN6qZcWHYkarZ4inKXdtxTeT2k-PTg4GwXOEJLKoYfuUz4OhKEvfFB4xRx3ZUcU6AcrnJW_krtpw-xk5zzwreK8o7wdmuNSpZQi2a4WlFePKpv0okr8g1vtQ5IuaPKhsVZQ0dqtpeFMKrkhX5mdXq-e-CPmrnW2-mHBaBhpFuknffeToHL_NHyPi_MiM-u8CpmdY4m2vtccUaIsQOhgosJ_WqOxw2BF4DxhI1hNNIfTaO4p5R73sGRl7i');"></div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold truncate">David Brown</p>
+<p class="text-xs text-slate-500">Sick Leave • 2 days</p>
+</div>
+<div class="flex gap-2">
+<button class="size-8 rounded-full flex items-center justify-center bg-green-100 text-green-600 hover:bg-green-200 transition">
+<span class="material-symbols-outlined text-sm">check</span>
+</button>
+<button class="size-8 rounded-full flex items-center justify-center bg-red-100 text-red-600 hover:bg-red-200 transition">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-4 p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+<div class="size-10 rounded-full bg-cover shrink-0" data-alt="Employee requesting leave" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDmMnciHdf-rQ0_0Xfom0LF4ZCajqyRfDvzIR0AJ_ucgf13TRHYZ2ASQfCgTOmmN4cNZrE6kbWKmj3YWR9N2U3xjObT-iSjVRPYYcFMBz2LTEq77iJnkg9vMu3YTZZtiPCj0FOU3KGLP9vluL9v6NuxamCikJdsnJaEIPzaULMQvPfqd7sVlQAGVgBiQSQjg7SgirBjhVp13DoOhiKC8YoWkOmTNC54daI7ttsT0ACCSNRK4zhnGzilaXFXK0wQU3FzbNW_AHrcT2nQ');"></div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold truncate">Emma Watson</p>
+<p class="text-xs text-slate-500">Vacation • 5 days</p>
+</div>
+<div class="flex gap-2">
+<button class="size-8 rounded-full flex items-center justify-center bg-green-100 text-green-600 hover:bg-green-200 transition">
+<span class="material-symbols-outlined text-sm">check</span>
+</button>
+<button class="size-8 rounded-full flex items-center justify-center bg-red-100 text-red-600 hover:bg-red-200 transition">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+</div>
+</div>
+<button class="w-full mt-4 text-primary text-sm font-semibold hover:underline">View All Requests (14)</button>
+</div>
+<div class="bg-primary/5 rounded-xl border border-primary/20 p-6">
+<h3 class="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined">payments</span>
+                            Payroll Status
+                        </h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center text-sm">
+<span class="text-slate-600 dark:text-slate-400">Current Cycle</span>
+<span class="font-bold">May 15 - May 31</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 65%"></div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-xs text-slate-500">65% Processed</span>
+<span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold uppercase rounded">In Progress</span>
+</div>
+<button class="w-full bg-primary text-white py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition">Finalize Payroll</button>
+</div>
+</div>
+</div>
+</div>
+<section class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 text-center">
+<div class="max-w-md mx-auto">
+<div class="size-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
+<span class="material-symbols-outlined text-4xl">tips_and_updates</span>
+</div>
+<h3 class="text-2xl font-bold mb-2">Performance Reviews Due</h3>
+<p class="text-slate-500 dark:text-slate-400 mb-6">There are 12 employees awaiting their quarterly review. Starting these early helps maintain team alignment.</p>
+<div class="flex flex-wrap justify-center gap-4">
+<button class="bg-primary text-white px-6 py-3 rounded-lg font-bold hover:bg-primary/90 transition">Start Reviews</button>
+<button class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-6 py-3 rounded-lg font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition">Download Template</button>
+</div>
+</div>
+</section>
+</main>
+<footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-10 py-6 text-center text-slate-500 text-sm">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+<p>© 2024 Nexus HR Management Systems. All rights reserved.</p>
+<div class="flex gap-6">
+<a class="hover:text-primary" href="#">Privacy Policy</a>
+<a class="hover:text-primary" href="#">Terms of Service</a>
+<a class="hover:text-primary" href="#">Support</a>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</body></html>
