@@ -93,6 +93,14 @@
                     </a>
                 </li>
 
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('company.frontend.branch-users') ? 'active' : '' }}"
+                        href="{{ route('company.frontend.branch-users') }}">
+                        <i class="ri-team-line"></i>
+                        <span data-key="t-branch-users">Branch Users</span>
+                    </a>
+                </li>
+
                 {{-- Add more company nav items here as the portal grows --}}
 
             </ul>

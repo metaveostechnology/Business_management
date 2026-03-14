@@ -22,7 +22,14 @@ class StoreRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                \Illuminate\Validation\Rule::unique('roles')->where(function ($query) {
+                    return $query->where('company_id', auth()->id());
+                })
+            ],
             'description' => 'nullable|string|max:1000',
             'is_active'   => 'sometimes|boolean',
         ];

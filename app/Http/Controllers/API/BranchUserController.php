@@ -56,14 +56,18 @@ class BranchUserController extends Controller
         try {
             $companyId = auth()->id();
 
-            // Ensure the selected branch belongs to the authenticated company
-            $branch = Branch::where('id', $request->integer('branch_id'))
+            // Ensure the selected branch and role belong to the authenticated company
+            $branch = \App\Models\Branch::where('id', $request->integer('branch_id'))
                             ->where('company_id', $companyId)
                             ->first();
 
-            if (!$branch) {
+            $role = \App\Models\Role::where('id', $request->integer('role_id'))
+                            ->where('company_id', $companyId)
+                            ->first();
+
+            if (!$branch || !$role) {
                 return $this->errorResponse(
-                    'The selected branch does not belong to your company.',
+                    'The selected branch or role does not belong to your company.',
                     statusCode: 403
                 );
             }
@@ -119,17 +123,24 @@ class BranchUserController extends Controller
                 return $this->errorResponse('Branch user not found.', statusCode: 404);
             }
 
-            // If branch_id is being updated, verify it belongs to the company
+            // If branch_id or role_id is being updated, verify it belongs to the company
             if ($request->has('branch_id')) {
-                $branch = Branch::where('id', $request->integer('branch_id'))
+                $branch = \App\Models\Branch::where('id', $request->integer('branch_id'))
                                 ->where('company_id', $companyId)
                                 ->first();
 
                 if (!$branch) {
-                    return $this->errorResponse(
-                        'The selected branch does not belong to your company.',
-                        statusCode: 403
-                    );
+                    return $this->errorResponse('The selected branch does not belong to your company.', statusCode: 403);
+                }
+            }
+
+            if ($request->has('role_id')) {
+                $role = \App\Models\Role::where('id', $request->integer('role_id'))
+                                ->where('company_id', $companyId)
+                                ->first();
+
+                if (!$role) {
+                    return $this->errorResponse('The selected role does not belong to your company.', statusCode: 403);
                 }
             }
 

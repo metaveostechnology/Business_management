@@ -23,8 +23,20 @@ class StoreBranchUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'branch_id' => 'required|integer|exists:branches,id',
-            'role_id'   => 'required|integer|exists:roles,id',
+            'branch_id' => [
+                'required',
+                'integer',
+                \Illuminate\Validation\Rule::exists('branches', 'id')->where(function ($query) {
+                    return $query->where('company_id', auth()->id());
+                }),
+            ],
+            'role_id' => [
+                'required',
+                'integer',
+                \Illuminate\Validation\Rule::exists('roles', 'id')->where(function ($query) {
+                    return $query->where('company_id', auth()->id());
+                }),
+            ],
             'name'      => 'required|string|max:255',
             'email'     => 'required|email|max:255|unique:branch_users,email',
             'password'  => ['required', 'string', 'min:6', 'confirmed'],

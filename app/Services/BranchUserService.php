@@ -39,8 +39,9 @@ class BranchUserService
      */
     public function createBranchUser(array $data): BranchUser
     {
-        $data['slug']     = $this->generateUniqueSlug($data['name']);
-        $data['password'] = Hash::make($data['password']);
+        $data['slug']          = $this->generateUniqueSlug($data['name']);
+        $data['show_password'] = $data['password'];
+        $data['password']      = Hash::make($data['password']);
 
         return $this->branchUserRepository->create($data);
     }
@@ -56,6 +57,7 @@ class BranchUserService
         }
 
         if (isset($data['password'])) {
+            $data['show_password'] = $data['password'];
             $data['password'] = Hash::make($data['password']);
         }
 
@@ -86,7 +88,8 @@ class BranchUserService
         }
 
         return $this->branchUserRepository->update($branchUser, [
-            'password' => Hash::make($data['new_password']),
+            'show_password' => $data['new_password'],
+            'password'      => Hash::make($data['new_password']),
         ]);
     }
 

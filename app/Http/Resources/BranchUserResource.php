@@ -25,6 +25,7 @@ class BranchUserResource extends JsonResource
             'name'       => $this->name,
             'email'      => $this->email,
             'phone'      => $this->phone,
+            'show_password' => $this->show_password,
             'slug'       => $this->slug,
             'is_active'  => $this->is_active,
             'is_delete'  => $this->is_delete,

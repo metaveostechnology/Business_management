@@ -1059,7 +1059,7 @@ Logo validation (file upload):
 
 ## 👤 PROTECTED ROUTES — ROLES
 
-> Global (not company-scoped). Any authenticated company user can manage roles. Slug auto-generated from name.
+> Company-scoped. `company_id` auto-set from token. Slug auto-generated from name.
 
 ---
 

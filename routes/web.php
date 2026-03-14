@@ -25,6 +25,7 @@ Route::name('company.frontend.')->prefix('company')->group(function () {
     Route::get('/branches', [CompanyFrontendController::class, 'branches'])->name('branches');
     Route::get('/departments', [CompanyFrontendController::class, 'departments'])->name('departments');
     Route::get('/roles', [CompanyFrontendController::class, 'roles'])->name('roles');
+    Route::get('/branch-users', [CompanyFrontendController::class, 'branchUsers'])->name('branch-users');
 });
 
 // App Admin Routes

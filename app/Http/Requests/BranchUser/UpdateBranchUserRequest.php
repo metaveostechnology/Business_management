@@ -21,12 +21,26 @@ class UpdateBranchUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Get the branch user's id via slug from route
-        $branchUserId = optional($this->route('branch_user_id'))->id;
+        $slug = $this->route('slug');
+        $branchUserId = \App\Models\BranchUser::where('slug', $slug)->where('company_id', auth()->id())->value('id');
 
         return [
-            'branch_id' => 'sometimes|required|integer|exists:branches,id',
-            'role_id'   => 'sometimes|required|integer|exists:roles,id',
+            'branch_id' => [
+                'sometimes',
+                'required',
+                'integer',
+                \Illuminate\Validation\Rule::exists('branches', 'id')->where(function ($query) {
+                    return $query->where('company_id', auth()->id());
+                }),
+            ],
+            'role_id' => [
+                'sometimes',
+                'required',
+                'integer',
+                \Illuminate\Validation\Rule::exists('roles', 'id')->where(function ($query) {
+                    return $query->where('company_id', auth()->id());
+                }),
+            ],
             'name'      => 'sometimes|required|string|max:255',
             'email'     => [
                 'sometimes',
