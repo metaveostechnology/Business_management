@@ -118,12 +118,9 @@ Route::middleware('auth:sanctum,company')->group(function () {
             Route::put('/features/{slug}', [FeatureController::class, 'update'])->name('features.update');
             Route::delete('/features/{slug}', [FeatureController::class, 'destroy'])->name('features.destroy');
 
-            // Department management routes (slug-based, scoped to authenticated company)
+            // Department read-only routes (global lookup)
             Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');
-            Route::post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
             Route::get('/departments/{slug}', [DepartmentController::class, 'show'])->name('departments.show');
-            Route::put('/departments/{slug}', [DepartmentController::class, 'update'])->name('departments.update');
-            Route::delete('/departments/{slug}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
 
             // Department-Feature mapping routes (slug-based, company-scoped via department)
             Route::get('/department-features', [DepartmentFeatureController::class, 'index'])->name('department-features.index');
