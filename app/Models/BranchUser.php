@@ -23,12 +23,15 @@ class BranchUser extends Model
     protected $fillable = [
         'company_id',
         'branch_id',
-        'role_id',
+        'dept_id',
+        'emp_id',
         'name',
         'email',
         'password',
         'phone',
         'slug',
+        'is_dept_admin',
+        'is_branch_admin',
         'is_active',
         'is_delete',
         'created_by',
@@ -49,9 +52,11 @@ class BranchUser extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'is_active' => 'boolean',
-        'is_delete' => 'boolean',
-        'password'  => 'hashed',
+        'is_dept_admin'   => 'boolean',
+        'is_branch_admin' => 'boolean',
+        'is_active'       => 'boolean',
+        'is_delete'       => 'boolean',
+        'password'        => 'hashed',
     ];
 
     /**
@@ -79,10 +84,10 @@ class BranchUser extends Model
     }
 
     /**
-     * A branch user belongs to a role.
+     * A branch user belongs to a department.
      */
-    public function role(): BelongsTo
+    public function department(): BelongsTo
     {
-        return $this->belongsTo(Role::class, 'role_id');
+        return $this->belongsTo(Department::class, 'dept_id');
     }
 }

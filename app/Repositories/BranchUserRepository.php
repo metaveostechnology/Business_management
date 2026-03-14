@@ -18,7 +18,7 @@ class BranchUserRepository
     ): LengthAwarePaginator {
         $query = BranchUser::where('company_id', $companyId)
                             ->where('is_delete', false)
-                            ->with(['branch', 'role']);
+                            ->with(['branch', 'department']);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -43,7 +43,7 @@ class BranchUserRepository
         return BranchUser::where('slug', $slug)
             ->where('company_id', $companyId)
             ->where('is_delete', false)
-            ->with(['branch', 'role'])
+            ->with(['branch', 'department'])
             ->first();
     }
 
@@ -61,7 +61,7 @@ class BranchUserRepository
     public function update(BranchUser $branchUser, array $data): BranchUser
     {
         $branchUser->update($data);
-        return $branchUser->fresh(['branch', 'role']);
+        return $branchUser->fresh(['branch', 'department']);
     }
 
     /**

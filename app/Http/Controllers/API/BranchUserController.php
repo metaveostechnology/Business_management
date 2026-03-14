@@ -54,7 +54,8 @@ class BranchUserController extends Controller
     public function store(StoreBranchUserRequest $request): JsonResponse
     {
         try {
-            $companyId = auth()->id();
+            $company = auth()->user();
+            $companyId = $company->id;
 
             // Ensure the selected branch belongs to the authenticated company
             $branch = Branch::where('id', $request->integer('branch_id'))
@@ -68,14 +69,24 @@ class BranchUserController extends Controller
                 );
             }
 
+            // Generate Employee ID
+            $prefix = strtoupper(substr($company->name, 0, 3));
+            $lastUser = \App\Models\BranchUser::where('company_id', $companyId)
+                        ->orderBy('id', 'desc')
+                        ->first();
+            
+            $nextNumber = $lastUser ? (int)substr($lastUser->emp_id, 4) + 1 : 1;
+            $empId = $prefix . '-' . str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
+
             $data               = $request->validated();
             $data['company_id'] = $companyId;
-            $data['created_by'] = auth()->id();
+            $data['created_by'] = $companyId;
+            $data['emp_id']     = $empId;
 
             $branchUser = $this->branchUserService->createBranchUser($data);
 
             return $this->createdResponse(
-                new BranchUserResource($branchUser->load('branch', 'role')),
+                new BranchUserResource($branchUser->load('branch', 'department')),
                 'Branch user created successfully.'
             );
         } catch (Throwable $e) {

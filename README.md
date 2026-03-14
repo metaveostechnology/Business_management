@@ -1140,7 +1140,7 @@ Logo validation (file upload):
 
 ## 👥 PROTECTED ROUTES — BRANCH USERS
 
-> Company-scoped. `company_id` and `created_by` auto-set from token. Soft-deleted via `is_delete=true`.
+> Company-scoped. `company_id` and `created_by` auto-set from token. Soft-deleted via `is_delete=true`. Dynamic `emp_id` generated during creation.
 
 ---
 
@@ -1159,10 +1159,12 @@ Logo validation (file upload):
 {
     "data": [{
         "id": 1, "company_id": 1,
+        "emp_id": "ABC-00000001",
         "branch": { "id": 1, "name": "Bhubaneswar Head Office", "slug": "bhubaneswar-head-office" },
-        "role": { "id": 1, "name": "Branch Manager", "slug": "branch-manager" },
+        "department": { "id": 1, "name": "IT Department", "slug": "it-department" },
         "name": "John Doe", "email": "john@abc.com", "phone": "9876543210",
-        "slug": "john-doe", "is_active": true, "is_delete": false
+        "slug": "john-doe", "is_dept_admin": true, "is_branch_admin": false,
+        "is_active": true, "is_delete": false
     }]
 }
 ```
@@ -1171,33 +1173,36 @@ Logo validation (file upload):
 
 ### 60. Create Branch User
 
-**`POST /api/company/branch-users`** — Slug auto-generated. Password hashed.
+**`POST /api/company/branch-users`** — Slug & `emp_id` auto-generated. Password hashed.
 
 > Returns `403` if `branch_id` does not belong to authenticated company.
 
 ```json
 // Request
 {
-    "branch_id": 1, "role_id": 1,
+    "branch_id": 1, "dept_id": 1,
     "name": "John Doe", "email": "john@abc.com",
-    "password": "secret123", "password_confirmation": "secret123",
-    "phone": "9876543210", "is_active": true
+    "password": "secret123",
+    "phone": "9876543210", "is_active": true,
+    "is_dept_admin": true, "is_branch_admin": false
 }
 ```
 
 | Field | Rules |
 |---|---|
 | `branch_id` | required, integer, exists:branches,id |
-| `role_id` | required, integer, exists:roles,id |
-| `name` | required, string, max:255 |
+| `dept_id` | nullable, integer, exists:departments,id |
+| `name` | required, string, max:191 |
 | `email` | required, email, unique:branch_users |
-| `password` | required, min:6, confirmed |
+| `password` | required, min:6 |
 | `phone` | nullable, string, max:20 |
+| `is_dept_admin` | sometimes, boolean |
+| `is_branch_admin` | sometimes, boolean |
 | `is_active` | sometimes, boolean |
 
 ```json
 // 201 Success
-{ "success": true, "message": "Branch user created successfully.", "data": { "slug": "john-doe", ... } }
+{ "success": true, "message": "Branch user created successfully.", "data": { "emp_id": "ABC-00000001", "slug": "john-doe", ... } }
 ```
 
 ```json
@@ -1223,7 +1228,7 @@ Logo validation (file upload):
 
 ```json
 // Request
-{ "name": "John Smith", "role_id": 2, "phone": "9000000001", "is_active": false }
+{ "name": "John Smith", "dept_id": 2, "is_branch_admin": true, "phone": "9000000001", "is_active": false }
 ```
 
 > If `branch_id` changes, new branch must still belong to the company.

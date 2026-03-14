@@ -23,13 +23,15 @@ class StoreBranchUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'branch_id' => 'required|integer|exists:branches,id',
-            'role_id'   => 'required|integer|exists:roles,id',
-            'name'      => 'required|string|max:255',
-            'email'     => 'required|email|max:255|unique:branch_users,email',
-            'password'  => ['required', 'string', 'min:6', 'confirmed'],
-            'phone'     => 'nullable|string|max:20',
-            'is_active' => 'sometimes|boolean',
+            'branch_id'       => 'required|integer|exists:branches,id',
+            'dept_id'         => 'nullable|integer|exists:departments,id',
+            'name'            => 'required|string|max:191',
+            'email'           => 'required|email|max:191|unique:branch_users,email',
+            'password'        => ['required', 'string', 'min:6'],
+            'phone'           => 'nullable|string|max:20',
+            'is_dept_admin'   => 'sometimes|boolean',
+            'is_branch_admin' => 'sometimes|boolean',
+            'is_active'       => 'sometimes|boolean',
         ];
     }
 
@@ -40,9 +42,8 @@ class StoreBranchUserRequest extends FormRequest
     {
         return [
             'branch_id.exists' => 'The selected branch does not exist.',
-            'role_id.exists'   => 'The selected role does not exist.',
+            'dept_id.exists'   => 'The selected department does not exist.',
             'email.unique'     => 'A branch user with this email already exists.',
-            'password.confirmed' => 'Password confirmation does not match.',
         ];
     }
 }
