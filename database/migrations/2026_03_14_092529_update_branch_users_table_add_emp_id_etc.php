@@ -18,11 +18,19 @@ return new class extends Migration
                 $table->dropColumn('role_id');
             }
 
-            // Add new columns
-            $table->string('emp_id', 20)->unique()->after('company_id');
-            $table->foreignId('dept_id')->nullable()->after('branch_id')->constrained('departments')->nullOnDelete();
-            $table->boolean('is_dept_admin')->default(0)->after('phone');
-            $table->boolean('is_branch_admin')->default(0)->after('is_dept_admin');
+            // Add new columns conditionally DDL
+            if (!Schema::hasColumn('branch_users', 'emp_id')) {
+                $table->string('emp_id', 20)->unique()->after('company_id');
+            }
+            if (!Schema::hasColumn('branch_users', 'dept_id')) {
+                $table->foreignId('dept_id')->nullable()->after('branch_id')->constrained('departments')->nullOnDelete();
+            }
+            if (!Schema::hasColumn('branch_users', 'is_dept_admin')) {
+                $table->boolean('is_dept_admin')->default(0)->after('phone');
+            }
+            if (!Schema::hasColumn('branch_users', 'is_branch_admin')) {
+                $table->boolean('is_branch_admin')->default(0)->after('is_dept_admin');
+            }
         });
     }
 

@@ -40,11 +40,11 @@ class BranchUserController extends Controller
             return $this->paginatedResponse(
                 paginator: $paginator,
                 data:      BranchUserResource::collection($paginator),
-                message:   'Branch users retrieved successfully.'
+                message:   'Employees retrieved successfully.'
             );
         } catch (Throwable $e) {
             Log::error('BranchUser index error', ['error' => $e->getMessage()]);
-            return $this->errorResponse('An error occurred while fetching branch users.', statusCode: 500);
+            return $this->errorResponse('An error occurred while fetching employees.', statusCode: 500);
         }
     }
 
@@ -57,21 +57,20 @@ class BranchUserController extends Controller
             $company = auth()->user();
             $companyId = $company->id;
 
-            // Ensure the selected branch and role belong to the authenticated company
+            // Ensure the selected branch belongs to the authenticated company
             $branch = \App\Models\Branch::where('id', $request->integer('branch_id'))
                             ->where('company_id', $companyId)
                             ->first();
 
-            $role = \App\Models\Role::where('id', $request->integer('role_id'))
-                            ->where('company_id', $companyId)
-                            ->first();
-
-            if (!$branch || !$role) {
+            if (!$branch) {
                 return $this->errorResponse(
-                    'The selected branch or role does not belong to your company.',
+                    'The selected branch does not belong to your company.',
                     statusCode: 403
                 );
             }
+
+            // Note: Departments are now global, so we don't need to check company_id for dept_id.
+            // Validation is already handled by StoreBranchUserRequest.
 
             // Generate Employee ID
             $prefix = strtoupper(substr($company->name, 0, 3));
@@ -91,11 +90,11 @@ class BranchUserController extends Controller
 
             return $this->createdResponse(
                 new BranchUserResource($branchUser->load('branch', 'department')),
-                'Branch user created successfully.'
+                'Employee created successfully.'
             );
         } catch (Throwable $e) {
             Log::error('BranchUser store error', ['error' => $e->getMessage()]);
-            return $this->errorResponse('An error occurred while creating the branch user.', statusCode: 500);
+            return $this->errorResponse('An error occurred while creating the employee.', statusCode: 500);
         }
     }
 
@@ -108,16 +107,16 @@ class BranchUserController extends Controller
             $branchUser = $this->branchUserService->findBySlug($slug, auth()->id());
 
             if (!$branchUser) {
-                return $this->errorResponse('Branch user not found.', statusCode: 404);
+                return $this->errorResponse('Employee not found.', statusCode: 404);
             }
 
             return $this->successResponse(
                 new BranchUserResource($branchUser),
-                'Branch user retrieved successfully.'
+                'Employee retrieved successfully.'
             );
         } catch (Throwable $e) {
             Log::error('BranchUser show error', ['slug' => $slug, 'error' => $e->getMessage()]);
-            return $this->errorResponse('An error occurred while fetching the branch user.', statusCode: 500);
+            return $this->errorResponse('An error occurred while fetching the employee.', statusCode: 500);
         }
     }
 
@@ -131,10 +130,10 @@ class BranchUserController extends Controller
             $branchUser = $this->branchUserService->findBySlug($slug, $companyId);
 
             if (!$branchUser) {
-                return $this->errorResponse('Branch user not found.', statusCode: 404);
+                return $this->errorResponse('Employee not found.', statusCode: 404);
             }
 
-            // If branch_id or role_id is being updated, verify it belongs to the company
+            // If branch_id is being updated, verify it belongs to the company
             if ($request->has('branch_id')) {
                 $branch = \App\Models\Branch::where('id', $request->integer('branch_id'))
                                 ->where('company_id', $companyId)
@@ -145,25 +144,15 @@ class BranchUserController extends Controller
                 }
             }
 
-            if ($request->has('role_id')) {
-                $role = \App\Models\Role::where('id', $request->integer('role_id'))
-                                ->where('company_id', $companyId)
-                                ->first();
-
-                if (!$role) {
-                    return $this->errorResponse('The selected role does not belong to your company.', statusCode: 403);
-                }
-            }
-
             $updated = $this->branchUserService->updateBranchUser($branchUser, $request->validated());
 
             return $this->successResponse(
                 new BranchUserResource($updated),
-                'Branch user updated successfully.'
+                'Employee updated successfully.'
             );
         } catch (Throwable $e) {
             Log::error('BranchUser update error', ['slug' => $slug, 'error' => $e->getMessage()]);
-            return $this->errorResponse('An error occurred while updating the branch user.', statusCode: 500);
+            return $this->errorResponse('An error occurred while updating the employee.', statusCode: 500);
         }
     }
 
@@ -176,15 +165,15 @@ class BranchUserController extends Controller
             $branchUser = $this->branchUserService->findBySlug($slug, auth()->id());
 
             if (!$branchUser) {
-                return $this->errorResponse('Branch user not found.', statusCode: 404);
+                return $this->errorResponse('Employee not found.', statusCode: 404);
             }
 
             $this->branchUserService->deleteBranchUser($branchUser);
 
-            return $this->noContentResponse('Branch user deleted successfully.');
+            return $this->noContentResponse('Employee deleted successfully.');
         } catch (Throwable $e) {
             Log::error('BranchUser destroy error', ['slug' => $slug, 'error' => $e->getMessage()]);
-            return $this->errorResponse('An error occurred while deleting the branch user.', statusCode: 500);
+            return $this->errorResponse('An error occurred while deleting the employee.', statusCode: 500);
         }
     }
 
@@ -197,7 +186,7 @@ class BranchUserController extends Controller
             $branchUser = $this->branchUserService->findBySlug($slug, auth()->id());
 
             if (!$branchUser) {
-                return $this->errorResponse('Branch user not found.', statusCode: 404);
+                return $this->errorResponse('Employee not found.', statusCode: 404);
             }
 
             $this->branchUserService->changePassword($branchUser, $request->validated());
