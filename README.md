@@ -26,6 +26,7 @@ Modules: **Admin Auth**, **Admin Management**, **Company Auth & Management**, **
 |---|---|---|---|
 | `sanctum` (admin) | `POST /api/admin/login` | Platform admins | `/api/admins/*`, `/api/admin/companies/*`, `/api/companies/*` |
 | `company` | `POST /api/company/login` | Company accounts | `/api/company/*` (branches, roles, etc.) |
+| `sanctum` (branch admin)| `POST /api/branch-admin/login` | Branch admins | `/api/branch-admin/*` |
 
 > All protected routes require: `Authorization: Bearer {token}`
 
@@ -177,6 +178,32 @@ API base URL: `http://localhost:8000/api`
 ```
 
 ---
+
+---
+
+### 4. Branch Admin Login
+
+**`POST /api/branch-admin/login`**
+
+```json
+// Request
+{ "email": "branch_admin@abc.com", "password": "secret123" }
+```
+
+```json
+// 200 Success
+{
+  "status": true,
+  "message": "Login successful",
+  "token": "3|ghi789token",
+  "user": { ... }
+}
+```
+
+```json
+// 404/401 Error
+{ "status": false, "message": "Invalid password." }
+```
 
 ---
 
@@ -582,6 +609,26 @@ Logo validation (file upload):
 ```json
 // 422 Wrong Password
 { "success": false, "message": "The current password is incorrect." }
+```
+
+---
+
+## 🏢 PROTECTED ROUTES — BRANCH ADMIN
+
+> Require header: `Authorization: Bearer {branch_admin_token}` (from `POST /api/branch-admin/login`)
+
+---
+
+### 28b. Branch Admin Logout
+
+**`POST /api/branch-admin/logout`**
+
+```json
+// 200 Success
+{
+  "status": true,
+  "message": "Logout successful"
+}
 ```
 
 ---
@@ -1286,7 +1333,9 @@ Logo validation (file upload):
 | POST | `/api/admin/login` | Public | AdminAuthController@login |
 | POST | `/api/register-company` | Public | CompanyAuthController@register |
 | POST | `/api/company/login` | Public | CompanyAuthController@login |
+| POST | `/api/branch-admin/login` | Public | BranchAdminAuthController@login |
 | POST | `/api/admin/logout` | admin | AdminAuthController@logout |
+| POST | `/api/branch-admin/logout` | branch_admin | BranchAdminAuthController@logout |
 | GET | `/api/admin/profile` | admin | AdminAuthController@profile |
 | PUT | `/api/admin/profile` | admin | AdminAuthController@updateProfile |
 | GET | `/api/admins` | admin | AdminController@index |
@@ -1387,6 +1436,7 @@ app/
 │   ├── AdminAuthController.php       # Admin login/logout/profile
 │   ├── AdminController.php           # Admin CRUD + restore
 │   ├── AdminCompanyController.php    # Admin company CRUD
+│   ├── BranchAdminAuthController.php # Branch Admin login/logout
 │   ├── BranchController.php          # Branch CRUD
 │   ├── BranchUserController.php      # Branch user CRUD + change-password
 │   ├── CompanyAuthController.php     # Company register/login/profile

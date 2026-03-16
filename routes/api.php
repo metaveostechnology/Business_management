@@ -12,6 +12,7 @@ use App\Http\Controllers\API\DepartmentFeatureController;
 use App\Http\Controllers\API\FeatureController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\SystemSettingController;
+use App\Http\Controllers\Api\BranchAdminAuthController;
 use Illuminate\Support\Facades\Route;
 
 /* |-------------------------------------------------------------------------- | Admin Management & Company API Routes |-------------------------------------------------------------------------- */
@@ -152,4 +153,10 @@ Route::middleware('auth:sanctum,company')->group(function () {
             Route::post('/branch-users/{slug}/change-password', [BranchUserController::class, 'changePassword'])->name('branch-users.change-password');
         }
     );
+});
+
+Route::post('/branch-admin/login', [BranchAdminAuthController::class, 'login']);
+
+Route::middleware(['auth:sanctum', 'branch_admin'])->group(function () {
+    Route::post('/branch-admin/logout', [BranchAdminAuthController::class, 'logout']);
 });
