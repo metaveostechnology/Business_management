@@ -1,16 +1,16 @@
 @extends('layouts.company_app')
 
-@section('title', 'Branch Users Management')
+@section('title', 'Employee Management')
 
 @section('content')
 <div class="row">
     <div class="col-12">
         <div class="card">
             <div class="card-header border-0 align-items-center d-flex">
-                <h4 class="card-title mb-0 flex-grow-1">Branch Users List</h4>
+                <h4 class="card-title mb-0 flex-grow-1">Employee List</h4>
                 <div class="flex-shrink-0">
                     <button type="button" class="btn btn-primary" onclick="showAddUserModal()">
-                        <i class="ri-add-line align-middle me-1"></i> Add Branch User
+                        <i class="ri-add-line align-middle me-1"></i> Add Employee
                     </button>
                 </div>
             </div>
@@ -45,11 +45,13 @@
                     <table class="table align-middle table-nowrap mb-0">
                         <thead class="table-light text-muted">
                             <tr>
+                                <th>Emp ID</th>
                                 <th>Name</th>
                                 <th>Contact</th>
                                 <th>Branch</th>
-                                <th>Role</th>
+                                <th>Department</th>
                                 <th>Status</th>
+                                <th>Role</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -75,7 +77,7 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-light p-3">
-                <h5 class="modal-title" id="userModalLabel">Add Branch User</h5>
+                <h5 class="modal-title" id="userModalLabel">Add Employee</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="userForm">
@@ -109,11 +111,24 @@
                             </select>
                         </div>
                         <div class="col-lg-6">
-                            <label for="role_id" class="form-label">Role <span class="text-danger">*</span></label>
-                            <select class="form-control" id="role_id" name="role_id" required>
-                                <option value="">Select Role</option>
+                            <label for="dept_id" class="form-label">Department <span class="text-danger">*</span></label>
+                            <select class="form-control" id="dept_id" name="dept_id" required>
+                                <option value="">Select Department</option>
                                 <!-- Populated dynamically -->
                             </select>
+                        </div>
+                        
+                        <div class="col-lg-6">
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="is_dept_admin">
+                                <label class="form-check-label" for="is_dept_admin">Department Admin</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="is_branch_admin">
+                                <label class="form-check-label" for="is_branch_admin">Branch Admin</label>
+                            </div>
                         </div>
                         
                         <!-- Password fields (required for Add, optional for Edit if we handle it differently, but API requires confirmed password for store) -->
@@ -136,7 +151,7 @@
                 <div class="modal-footer">
                     <div class="hstack gap-2 justify-content-end">
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-success" id="btnSave">Save User</button>
+                        <button type="submit" class="btn btn-success" id="btnSave">Save Employee</button>
                     </div>
                 </div>
             </form>
@@ -149,19 +164,20 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-light p-3">
-                <h5 class="modal-title" id="viewUserModalLabel">Branch User Details</h5>
+                <h5 class="modal-title" id="viewUserModalLabel">Employee Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <table class="table table-borderless table-sm mb-0">
                     <tbody>
+                        <tr><th class="ps-0" scope="row">Emp ID:</th><td class="text-muted" id="view_emp_id"></td></tr>
                         <tr><th class="ps-0" scope="row">Name:</th><td class="text-muted" id="view_name"></td></tr>
                         <tr><th class="ps-0" scope="row">Email:</th><td class="text-muted" id="view_email"></td></tr>
                         <tr><th class="ps-0" scope="row">Phone:</th><td class="text-muted" id="view_phone"></td></tr>
                         <tr><th class="ps-0" scope="row">Branch:</th><td class="text-muted" id="view_branch"></td></tr>
-                        <tr><th class="ps-0" scope="row">Role:</th><td class="text-muted" id="view_role"></td></tr>
+                        <tr><th class="ps-0" scope="row">Department:</th><td class="text-muted" id="view_dept"></td></tr>
                         <tr><th class="ps-0" scope="row">Status:</th><td class="text-muted" id="view_status"></td></tr>
-                        <tr><th class="ps-0" scope="row">Password:</th><td class="text-muted"><span id="view_password" class="text-secondary fst-italic">Hidden</span></td></tr>
+                        <tr><th class="ps-0" scope="row">Admin Status:</th><td class="text-muted" id="view_admin_status"></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -180,7 +196,7 @@
                 <lord-icon src="https://cdn.lordicon.com/gsqxdxog.json" trigger="loop" colors="primary:#f7b84b,secondary:#f06548" style="width:90px;height:90px"></lord-icon>
                 <div class="mt-4 text-center">
                     <h4>Are you sure?</h4>
-                    <p class="text-muted fs-15 mb-4">Are you sure you want to remove this user? They will no longer be able to log in.</p>
+                    <p class="text-muted fs-15 mb-4">Are you sure you want to remove this employee? They will no longer be able to log in.</p>
                     <div class="hstack gap-2 justify-content-center remove">
                         <button class="btn btn-link link-success fw-medium text-decoration-none" data-bs-dismiss="modal"><i class="ri-close-line me-1 align-middle"></i> Close</button>
                         <button class="btn btn-danger" id="btnConfirmDelete">Yes, Delete It</button>
@@ -205,7 +221,7 @@ let rolesList = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Load dropdown options first
-    await Promise.all([loadBranchesDropdown(), loadRolesDropdown()]);
+    await Promise.all([loadBranchesDropdown(), loadDepartmentsDropdown()]);
     
     loadUsers();
     
@@ -234,17 +250,17 @@ async function loadBranchesDropdown() {
     }
 }
 
-async function loadRolesDropdown() {
+async function loadDepartmentsDropdown() {
     try {
-        const response = await apiRequest('/company/roles?per_page=100&is_active=1');
-        rolesList = response.data || [];
-        const select = document.getElementById('role_id');
-        select.innerHTML = '<option value="">Select Role</option>';
-        rolesList.forEach(role => {
-            select.innerHTML += `<option value="${role.id}">${role.name}</option>`;
+        const response = await apiRequest('/company/departments?per_page=100&is_active=1');
+        const departmentsList = response.data || [];
+        const select = document.getElementById('dept_id');
+        select.innerHTML = '<option value="">Select Department</option>';
+        departmentsList.forEach(dept => {
+            select.innerHTML += `<option value="${dept.id}">${dept.name}</option>`;
         });
     } catch (error) {
-        console.error('Failed to load roles for dropdown', error);
+        console.error('Failed to load departments for dropdown', error);
     }
 }
 
@@ -264,35 +280,45 @@ async function loadUsers(page = 1) {
         });
 
         const response = await apiRequest(`/company/branch-users?${query.toString()}`);
+        console.log('Employee API response:', response); // Debugging emp_id visibility
         
         tableBody.innerHTML = '';
         
         if (response.data && response.data.length > 0) {
             noResult.classList.add('d-none');
             response.data.forEach(user => {
+                const empId = user.emp_id || 'N/A';
                 tableBody.innerHTML += `
                     <tr>
+                        <td><span class="badge bg-primary-subtle text-primary">${empId}</span></td>
                         <td class="fw-medium">${user.name}</td>
                         <td>
                             <div><i class="ri-mail-line align-bottom me-1 text-muted"></i> ${user.email}</div>
                             ${user.phone ? `<div><i class="ri-phone-line align-bottom me-1 text-muted"></i> ${user.phone}</div>` : ''}
                         </td>
                         <td>${user.branch ? user.branch.name : '<span class="text-danger">None</span>'}</td>
-                        <td>${user.role ? user.role.name : '<span class="text-danger">None</span>'}</td>
+                        <td>${user.department ? user.department.name : '<span class="text-danger">None</span>'}</td>
                         <td>
                             <span class="badge ${user.is_active ? 'bg-success' : 'bg-danger'}">
                                 ${user.is_active ? 'Active' : 'Inactive'}
                             </span>
                         </td>
                         <td>
+                            <div class="d-flex flex-column gap-1">
+                                ${user.is_dept_admin ? '<span class="badge badge-soft-info">Dept Admin</span>' : ''}
+                                ${user.is_branch_admin ? '<span class="badge badge-soft-warning">Branch Admin</span>' : ''}
+                                ${!user.is_dept_admin && !user.is_branch_admin ? '<span class="text-muted fs-12">Staff</span>' : ''}
+                            </div>
+                        </td>
+                        <td>
                             <div class="hstack gap-3 flex-wrap">
-                                <a href="javascript:void(0);" onclick="editUser('${user.slug}')" class="link-success fs-15 text-decoration-none" data-bs-toggle="tooltip" title="Edit User">
+                                <a href="javascript:void(0);" onclick="editUser('${user.slug}')" class="link-success fs-15 text-decoration-none" data-bs-toggle="tooltip" title="Edit Employee">
                                     <i class="ri-edit-2-line"></i>
                                 </a>
                                 <a href="javascript:void(0);" onclick="viewUser('${user.slug}')" class="link-info fs-15 text-decoration-none" data-bs-toggle="tooltip" title="View Details">
                                     <i class="ri-eye-line"></i>
                                 </a>
-                                <a href="javascript:void(0);" onclick="showDeleteModal('${user.slug}')" class="link-danger fs-15 text-decoration-none" data-bs-toggle="tooltip" title="Delete User">
+                                <a href="javascript:void(0);" onclick="showDeleteModal('${user.slug}')" class="link-danger fs-15 text-decoration-none" data-bs-toggle="tooltip" title="Delete Employee">
                                     <i class="ri-delete-bin-line"></i>
                                 </a>
                             </div>
@@ -306,8 +332,8 @@ async function loadUsers(page = 1) {
             document.getElementById('paginationContainer').innerHTML = '';
         }
     } catch (error) {
-        console.error('Error loading branch users:', error);
-        alert('Failed to load branch users.');
+        console.error('Error loading employees:', error);
+        alert('Failed to load employees.');
     }
 }
 
@@ -337,10 +363,12 @@ function renderPagination(meta) {
 }
 
 function showAddUserModal() {
-    document.getElementById('userModalLabel').innerText = 'Add Branch User';
+    document.getElementById('userModalLabel').innerText = 'Add Employee';
     document.getElementById('userForm').reset();
     document.getElementById('userSlug').value = '';
     document.getElementById('is_active').checked = true;
+    document.getElementById('is_dept_admin').checked = false;
+    document.getElementById('is_branch_admin').checked = false;
     
     // Make password required
     document.getElementById('password').required = true;
@@ -357,7 +385,7 @@ async function editUser(slug) {
         const response = await apiRequest(`/company/branch-users/${slug}`);
         const user = response.data;
         
-        document.getElementById('userModalLabel').innerText = 'Edit Branch User';
+        document.getElementById('userModalLabel').innerText = 'Edit Employee';
         document.getElementById('userSlug').value = user.slug;
         document.getElementById('name').value = user.name;
         document.getElementById('email').value = user.email;
@@ -368,9 +396,12 @@ async function editUser(slug) {
             document.getElementById('branch_id').value = user.branch.id;
         }
         
-        if (user.role && user.role.id) {
-            document.getElementById('role_id').value = user.role.id;
+        if (user.department && user.department.id) {
+            document.getElementById('dept_id').value = user.department.id;
         }
+
+        document.getElementById('is_dept_admin').checked = !!user.is_dept_admin;
+        document.getElementById('is_branch_admin').checked = !!user.is_branch_admin;
         
         // Hide password fields (they should use the change password flow)
         document.getElementById('password').required = false;
@@ -399,7 +430,9 @@ async function handleUserSubmit(e) {
         email: document.getElementById('email').value,
         phone: document.getElementById('phone').value || null,
         branch_id: document.getElementById('branch_id').value,
-        role_id: document.getElementById('role_id').value,
+        dept_id: document.getElementById('dept_id').value,
+        is_dept_admin: document.getElementById('is_dept_admin').checked,
+        is_branch_admin: document.getElementById('is_branch_admin').checked,
         is_active: document.getElementById('is_active').checked
     };
 
@@ -416,17 +449,17 @@ async function handleUserSubmit(e) {
         if (slug) {
             // Edit user (no password in this request, handled separately)
             await apiRequest(`/company/branch-users/${slug}`, 'PUT', payload);
-            alertSuccess('User updated successfully.');
+            alertSuccess('Employee updated successfully.');
         } else {
             // Create user
             await apiRequest('/company/branch-users', 'POST', payload);
-            alertSuccess('User created successfully.');
+            alertSuccess('Employee created successfully.');
         }
         userModal.hide();
         loadUsers(slug ? currentPage : 1);
     } catch (error) {
-        console.error('Error saving user:', error);
-        let msg = error.data?.message || 'Failed to save user.';
+        console.error('Error saving employee:', error);
+        let msg = error.data?.message || 'Failed to save employee.';
         if (error.data?.errors) {
             const firstError = Object.values(error.data.errors)[0][0];
             msg += '\n' + firstError;
@@ -434,7 +467,7 @@ async function handleUserSubmit(e) {
         alert(msg);
     } finally {
         btnSave.disabled = false;
-        btnSave.innerText = 'Save User';
+        btnSave.innerText = 'Save Employee';
     }
 }
 
@@ -443,22 +476,25 @@ async function viewUser(slug) {
         const response = await apiRequest(`/company/branch-users/${slug}`);
         const user = response.data;
         
+        document.getElementById('view_emp_id').innerText = user.emp_id || 'N/A';
         document.getElementById('view_name').innerText = user.name;
         document.getElementById('view_email').innerText = user.email;
         document.getElementById('view_phone').innerText = user.phone || 'N/A';
         document.getElementById('view_branch').innerText = user.branch ? user.branch.name : 'N/A';
-        document.getElementById('view_role').innerText = user.role ? user.role.name : 'N/A';
+        document.getElementById('view_dept').innerText = user.department ? user.department.name : 'N/A';
         document.getElementById('view_status').innerHTML = user.is_active 
             ? '<span class="badge bg-success">Active</span>' 
             : '<span class="badge bg-danger">Inactive</span>';
         
-        // Passwords are not returned via the API for security reasons.
-        document.getElementById('view_password').innerText = user.show_password || '********';
+        let adminStatus = '';
+        if (user.is_dept_admin) adminStatus += '<span class="badge bg-info-subtle text-info me-1">Dept Admin</span>';
+        if (user.is_branch_admin) adminStatus += '<span class="badge bg-warning-subtle text-warning">Branch Admin</span>';
+        document.getElementById('view_admin_status').innerHTML = adminStatus || '<span class="text-muted">None</span>';
 
         viewUserModal.show();
     } catch (error) {
-        console.error('Error fetching user:', error);
-        alert('Failed to fetch user details.');
+        console.error('Error fetching employee:', error);
+        alert('Failed to fetch employee details.');
     }
 }
 
@@ -477,11 +513,11 @@ async function deleteUser() {
     try {
         await apiRequest(`/company/branch-users/${currentDeleteSlug}`, 'DELETE');
         deleteModal.hide();
-        alertSuccess('User deleted successfully.');
+        alertSuccess('Employee deleted successfully.');
         loadUsers(currentPage);
     } catch (error) {
-        console.error('Error deleting user:', error);
-        alert('Failed to delete user.');
+        console.error('Error deleting employee:', error);
+        alert('Failed to delete employee.');
     } finally {
         btn.disabled = false;
         btn.innerText = 'Yes, Delete It';

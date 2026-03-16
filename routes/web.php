@@ -23,7 +23,6 @@ Route::name('company.frontend.')->prefix('company')->group(function () {
     Route::get('/dashboard', [CompanyFrontendController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [CompanyFrontendController::class, 'profile'])->name('profile');
     Route::get('/branches', [CompanyFrontendController::class, 'branches'])->name('branches');
-    Route::get('/roles', [CompanyFrontendController::class, 'roles'])->name('roles');
     Route::get('/branch-users', [CompanyFrontendController::class, 'branchUsers'])->name('branch-users');
 });
 

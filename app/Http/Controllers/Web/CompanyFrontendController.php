@@ -39,13 +39,7 @@ class CompanyFrontendController extends Controller
         return view('company.branches.index');
     }
 
-    /**
-     * Show the company roles management page.
-     */
-    public function roles()
-    {
-        return view('company.roles.index');
-    }
+
 
     public function profile()
     {

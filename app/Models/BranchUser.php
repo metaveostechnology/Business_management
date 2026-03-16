@@ -29,7 +29,6 @@ class BranchUser extends Authenticatable
         'name',
         'email',
         'password',
-        'show_password',
         'phone',
         'slug',
         'is_dept_admin',
