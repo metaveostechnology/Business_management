@@ -48,3 +48,11 @@ Route::prefix('appadmin')->group(function () {
         Route::resource('companies', CompanyController::class);
     });
 });
+// Branch Admin Routes
+Route::name('branch.')->prefix('branch')->group(function () {
+    // Public routes
+    Route::get('/login', [App\Http\Controllers\Web\BranchAdminController::class, 'login'])->name('login');
+    
+    // Protected routes (handled on client side via JS checking localStorage auth tokens)
+    Route::get('/dashboard', [App\Http\Controllers\Web\BranchAdminController::class, 'dashboard'])->name('dashboard');
+});
