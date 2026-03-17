@@ -13,6 +13,7 @@ use App\Http\Controllers\API\FeatureController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\SystemSettingController;
 use App\Http\Controllers\Api\BranchAdminAuthController;
+use App\Http\Controllers\Api\BranchEmployeeController;
 use Illuminate\Support\Facades\Route;
 
 /* |-------------------------------------------------------------------------- | Admin Management & Company API Routes |-------------------------------------------------------------------------- */
@@ -158,5 +159,13 @@ Route::middleware('auth:sanctum,company')->group(function () {
 Route::post('/branch-admin/login', [BranchAdminAuthController::class, 'login']);
 
 Route::middleware(['auth:sanctum', 'branch_admin'])->group(function () {
+
     Route::post('/branch-admin/logout', [BranchAdminAuthController::class, 'logout']);
+
+    // Branch Employees
+    Route::post('/branch/employees', [BranchEmployeeController::class, 'store']);
+    Route::get('/branch/employees', [BranchEmployeeController::class, 'index']);
+    Route::get('/branch/employees/{slug}', [BranchEmployeeController::class, 'show']);
+    Route::put('/branch/employees/{slug}', [BranchEmployeeController::class, 'update']);
+    Route::delete('/branch/employees/{slug}', [BranchEmployeeController::class, 'destroy']);
 });

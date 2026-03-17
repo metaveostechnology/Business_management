@@ -30,6 +30,7 @@ class BranchUser extends Authenticatable
         'email',
         'password',
         'phone',
+        'profile_image',
         'slug',
         'is_dept_admin',
         'is_branch_admin',

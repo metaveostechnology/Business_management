@@ -633,6 +633,145 @@ Logo validation (file upload):
 
 ---
 
+### 28c. Managing Branch Employees by Branch Admin
+
+---
+
+#### 1. List Branch Employees
+
+**`GET /api/branch/employees`** 
+
+List employees belonging to the same company and branch (excluding branch admins and deleted users).
+
+```json
+// 200 Success
+{
+  "status": true,
+  "message": "Employees retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "company_id": 1,
+      "branch_id": 1,
+      "dept_id": 2,
+      "emp_id": "COM-00000001",
+      "name": "Employee One",
+      "email": "employee@abc.com",
+      "phone": "9876543210",
+      "profile_image": "profile_images/somehash.jpg",
+      "slug": "employee-one",
+      "is_dept_admin": false,
+      "is_branch_admin": false,
+      "is_active": true,
+      "is_delete": false
+    }
+  ]
+}
+```
+
+---
+
+#### 2. Create Branch Employee
+
+**`POST /api/branch/employees`**
+
+`emp_id`, `company_id`, and `branch_id` are auto-configured from the authenticated branch admin. `profile_image` up to 5MB is supported.
+
+```json
+// Request (form-data or json if no image)
+{
+    "name": "Employee One",
+    "email": "employee@abc.com",
+    "password": "secretpassword",
+    "phone": "9876543210",
+    "dept_id": 2,
+    "profile_image": (file - optional)
+}
+```
+
+| Field | Rules |
+|---|---|
+| `name` | required, string, max:191 |
+| `email` | required, email, unique:branch_users |
+| `password` | required, min:6 |
+| `phone` | nullable, string, max:20 |
+| `dept_id` | required, exists:departments,id |
+| `profile_image` | nullable, image, mimes:jpg,jpeg,png,webp, max:5120 |
+
+```json
+// 201 Success
+{
+  "status": true,
+  "message": "Employee created successfully",
+  "data": {
+    "emp_id": "COM-00000001",
+    "slug": "employee-one",
+    // ... employee object
+  }
+}
+```
+
+---
+
+#### 3. Get Specific Employee
+
+**`GET /api/branch/employees/{id}`**
+
+```json
+// 200 Success
+{
+  "status": true,
+  "message": "Employee retrieved successfully",
+  "data": { ... }
+}
+```
+
+---
+
+#### 4. Update Employee
+
+**`PUT /api/branch/employees/{id}`**
+*(Use `POST` with `_method=PUT` if uploading `profile_image`)*
+
+```json
+// Request (all optional)
+{
+    "name": "Employee One Updated",
+    "phone": "9000000001",
+    "dept_id": 3,
+    "is_active": false,
+    "profile_image": (file - optional)
+}
+```
+
+```json
+// 200 Success
+{
+  "status": true,
+  "message": "Employee updated successfully",
+  "data": { ... }
+}
+```
+
+---
+
+#### 5. Soft Delete Employee
+
+**`DELETE /api/branch/employees/{id}`**
+
+Sets `is_delete = 1` and `is_active = 0`.
+
+```json
+// 200 Success
+{
+  "status": true,
+  "message": "Employee deleted successfully",
+  "data": {}
+}
+```
+
+---
+
 ## 🏢 PROTECTED ROUTES — BRANCHES
 
 > Scoped to authenticated company. Company users cannot access branches of another company.
@@ -1326,6 +1465,132 @@ Logo validation (file upload):
 
 ---
 
+## 👷 PROTECTED ROUTES — BRANCH EMPLOYEES
+
+> Branch-admin-scoped. Requires `auth:sanctum` + `branch_admin` middleware. `company_id` and `branch_id` are auto-set from the authenticated branch admin token. Slug auto-generated from name.
+
+---
+
+### 65. List Branch Employees
+
+**`GET /api/branch/employees`** — Returns all non-admin employees in the same branch.
+
+```json
+// 200 Success
+{
+    "status": true,
+    "message": "Employees retrieved successfully",
+    "data": [{
+        "id": 5, "company_id": 1, "branch_id": 2,
+        "emp_id": "ABC-00000005", "dept_id": 1,
+        "name": "Jane Smith", "email": "jane@abc.com",
+        "phone": "9876543210", "slug": "jane-smith",
+        "is_branch_admin": 0, "is_dept_admin": 0,
+        "is_active": 1, "is_delete": 0
+    }]
+}
+```
+
+---
+
+### 66. Create Branch Employee
+
+**`POST /api/branch/employees`** — Slug & `emp_id` auto-generated. `company_id` and `branch_id` inherited from authenticated branch admin.
+
+```json
+// Request (multipart/form-data)
+{
+    "name": "Jane Smith",
+    "email": "jane@abc.com",
+    "password": "secret123",
+    "phone": "9876543210",
+    "dept_id": 1,
+    "profile_image": "<file>"
+}
+```
+
+| Field | Rules |
+|---|---|
+| `name` | required, string, max:191 |
+| `email` | required, email, unique:branch_users |
+| `password` | required, min:6 |
+| `phone` | nullable, string, max:20 |
+| `dept_id` | required, exists:departments,id |
+| `profile_image` | nullable, image, mimes:jpg,jpeg,png,webp, max:5 MB |
+
+```json
+// 201 Success
+{
+    "status": true,
+    "message": "Employee created successfully",
+    "data": { "emp_id": "ABC-00000005", "slug": "jane-smith", ... }
+}
+```
+
+```json
+// 422 Validation Error
+{ "status": false, "message": "Validation error", "data": { "email": ["The email has already been taken."] } }
+```
+
+---
+
+### 67. Get Branch Employee
+
+**`GET /api/branch/employees/{slug}`**
+
+```json
+// 200 Success
+{ "status": true, "message": "Employee retrieved successfully", "data": { ... } }
+```
+
+```json
+// 404 Error
+{ "status": false, "message": "Employee not found", "data": {} }
+```
+
+---
+
+### 68. Update Branch Employee
+
+**`PUT /api/branch/employees/{slug}`** — All fields optional. Slug regenerated if name changes.
+
+```json
+// Request (multipart/form-data)
+{
+    "name": "Jane Williams",
+    "phone": "9000000001",
+    "dept_id": 2,
+    "is_active": 0,
+    "profile_image": "<file>"
+}
+```
+
+| Field | Rules |
+|---|---|
+| `name` | sometimes, string, max:191 |
+| `phone` | nullable, string, max:20 |
+| `dept_id` | sometimes, exists:departments,id |
+| `is_active` | sometimes, boolean |
+| `profile_image` | nullable, image, mimes:jpg,jpeg,png,webp, max:5 MB |
+
+```json
+// 200 Success
+{ "status": true, "message": "Employee updated successfully", "data": { "slug": "jane-williams", ... } }
+```
+
+---
+
+### 69. Delete Branch Employee (Soft Delete)
+
+**`DELETE /api/branch/employees/{slug}`** — Sets `is_delete=1` and `is_active=0`. Record retained for audit.
+
+```json
+// 200 Success
+{ "status": true, "message": "Employee deleted successfully", "data": {} }
+```
+
+---
+
 ## 📋 Route Summary Table
 
 | Method | URI | Guard | Controller |
@@ -1336,6 +1601,11 @@ Logo validation (file upload):
 | POST | `/api/branch-admin/login` | Public | BranchAdminAuthController@login |
 | POST | `/api/admin/logout` | admin | AdminAuthController@logout |
 | POST | `/api/branch-admin/logout` | branch_admin | BranchAdminAuthController@logout |
+| GET | `/api/branch/employees` | branch_admin | BranchEmployeeController@index |
+| POST | `/api/branch/employees` | branch_admin | BranchEmployeeController@store |
+| GET | `/api/branch/employees/{slug}` | branch_admin | BranchEmployeeController@show |
+| PUT | `/api/branch/employees/{slug}` | branch_admin | BranchEmployeeController@update |
+| DELETE | `/api/branch/employees/{slug}` | branch_admin | BranchEmployeeController@destroy |
 | GET | `/api/admin/profile` | admin | AdminAuthController@profile |
 | PUT | `/api/admin/profile` | admin | AdminAuthController@updateProfile |
 | GET | `/api/admins` | admin | AdminController@index |
@@ -1413,6 +1683,7 @@ Slugs are auto-generated from the resource name using `Str::slug()` with uniquen
 | Setting | group=company, key=timezone | `company-timezone` |
 | Role | Branch Manager | `branch-manager` |
 | Branch User | John Doe | `john-doe` |
+| Branch Employee | Jane Smith | `jane-smith` |
 
 ---
 
@@ -1437,6 +1708,7 @@ app/
 │   ├── AdminController.php           # Admin CRUD + restore
 │   ├── AdminCompanyController.php    # Admin company CRUD
 │   ├── BranchAdminAuthController.php # Branch Admin login/logout
+│   ├── BranchEmployeeController.php  # Branch Employee CRUD
 │   ├── BranchController.php          # Branch CRUD
 │   ├── BranchUserController.php      # Branch user CRUD + change-password
 │   ├── CompanyAuthController.php     # Company register/login/profile
