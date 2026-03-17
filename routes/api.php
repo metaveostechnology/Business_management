@@ -158,7 +158,7 @@ Route::middleware('auth:sanctum,company')->group(function () {
 
 Route::post('/branch-admin/login', [BranchAdminAuthController::class, 'login']);
 
-Route::middleware(['auth:sanctum', 'branch_admin'])->group(function () {
+Route::middleware(['auth:sanctum,branch_admin', 'branch_admin'])->group(function () {
 
     Route::post('/branch-admin/logout', [BranchAdminAuthController::class, 'logout']);
 

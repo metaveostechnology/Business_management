@@ -53,6 +53,11 @@ return [
             'driver'   => 'sanctum',
             'provider' => 'companies',
         ],
+
+        'branch_admin' => [
+            'driver'   => 'sanctum',
+            'provider' => 'branch_users',
+        ],
     ],
 
     /*
@@ -86,6 +91,11 @@ return [
         'companies' => [
             'driver' => 'eloquent',
             'model'  => App\Models\Company::class,
+        ],
+
+        'branch_users' => [
+            'driver' => 'eloquent',
+            'model'  => App\Models\BranchUser::class,
         ],
     ],
 
