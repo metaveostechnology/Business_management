@@ -26,7 +26,8 @@ Modules: **Admin Auth**, **Admin Management**, **Company Auth & Management**, **
 |---|---|---|---|
 | `sanctum` (admin) | `POST /api/admin/login` | Platform admins | `/api/admins/*`, `/api/admin/companies/*`, `/api/companies/*` |
 | `company` | `POST /api/company/login` | Company accounts | `/api/company/*` (branches, roles, etc.) |
-| `sanctum` (branch admin)| `POST /api/branch-admin/login` | Branch admins | `/api/branch-admin/*` |
+| `sanctum` (branch admin)| `POST /api/branch-admin/login` | Branch admins | `/api/branch-admin/*`, `/api/branch/employees/*` |
+| `sanctum` (dept admin)| `POST /api/dept-admin/login` | Department admins | `/api/dept-admin/*`, `/api/dept/employees/*` |
 
 > All protected routes require: `Authorization: Bearer {token}`
 
@@ -203,6 +204,32 @@ API base URL: `http://localhost:8000/api`
 ```json
 // 404/401 Error
 { "status": false, "message": "Invalid password." }
+```
+
+---
+
+### 5. Department Admin Login
+
+**`POST /api/dept-admin/login`**
+
+```json
+// Request
+{ "email": "dept_admin@abc.com", "password": "secret123" }
+```
+
+```json
+// 200 Success
+{
+  "status": true,
+  "message": "Login successful",
+  "token": "4|jkl012token",
+  "user": { ... }
+}
+```
+
+```json
+// 404/401 Error
+{ "status": false, "message": "Invalid credentials" }
 ```
 
 ---
@@ -1591,6 +1618,112 @@ Sets `is_delete = 1` and `is_active = 0`.
 
 ---
 
+## 🏢 PROTECTED ROUTES — DEPT ADMIN
+
+> Dept-admin-scoped. Requires `auth:sanctum` + `dept_admin` middleware. `company_id`, `branch_id`, and `dept_id` are auto-set from the authenticated dept admin token. Slug auto-generated from name.
+
+---
+
+### 70. Dept Admin Logout
+
+**`POST /api/dept-admin/logout`**
+
+```json
+// 200 Success
+{
+  "status": true,
+  "message": "Logout successful"
+}
+```
+
+---
+
+### 71. List Dept Employees
+
+**`GET /api/dept/employees`** — Returns all non-admin employees in the same department.
+
+```json
+// 200 Success
+{
+    "status": true,
+    "message": "Employees retrieved successfully",
+    "data": [{
+        "id": 6, "company_id": 1, "branch_id": 2,
+        "emp_id": "ABC-00000006", "dept_id": 1,
+        "name": "Bob Taylor", "email": "bob@abc.com",
+        "phone": "9876543210", "slug": "bob-taylor",
+        "is_branch_admin": 0, "is_dept_admin": 0,
+        "is_active": 1, "is_delete": 0
+    }]
+}
+```
+
+---
+
+### 72. Create Dept Employee
+
+**`POST /api/dept/employees`** — Slug & `emp_id` auto-generated. `company_id`, `branch_id`, and `dept_id` inherited from authenticated dept admin.
+
+```json
+// Request
+{
+    "name": "Bob Taylor",
+    "email": "bob@abc.com",
+    "password": "secret123",
+    "phone": "9876543210"
+}
+```
+
+| Field | Rules |
+|---|---|
+| `name` | required, string, max:191 |
+| `email` | required, email, unique:branch_users |
+| `password` | required, min:6 |
+| `phone` | nullable, string, max:20 |
+
+```json
+// 201 Success
+{
+    "status": true,
+    "message": "Employee created successfully",
+    "data": { "emp_id": "ABC-00000006", "slug": "bob-taylor", ... }
+}
+```
+
+---
+
+### 73. Get Dept Employee
+
+**`GET /api/dept/employees/{slug}`**
+
+---
+
+### 74. Update Dept Employee
+
+**`PUT /api/dept/employees/{slug}`** — All fields optional. Slug regenerated if name changes.
+
+```json
+// Request
+{
+    "name": "Bob Taylor Updated",
+    "phone": "9000000001",
+    "is_active": 0
+}
+```
+
+---
+
+### 75. Delete Dept Employee (Soft Delete)
+
+**`DELETE /api/dept/employees/{slug}`** — Sets `is_delete=1` and `is_active=0`. Record retained for audit.
+
+```json
+// 200 Success
+{ "status": true, "message": "Employee deleted successfully", "data": {} }
+```
+
+---
+
 ## 📋 Route Summary Table
 
 | Method | URI | Guard | Controller |
@@ -1599,13 +1732,20 @@ Sets `is_delete = 1` and `is_active = 0`.
 | POST | `/api/register-company` | Public | CompanyAuthController@register |
 | POST | `/api/company/login` | Public | CompanyAuthController@login |
 | POST | `/api/branch-admin/login` | Public | BranchAdminAuthController@login |
+| POST | `/api/dept-admin/login` | Public | DeptAdminAuthController@login |
 | POST | `/api/admin/logout` | admin | AdminAuthController@logout |
 | POST | `/api/branch-admin/logout` | branch_admin | BranchAdminAuthController@logout |
+| POST | `/api/dept-admin/logout` | dept_admin | DeptAdminAuthController@logout |
 | GET | `/api/branch/employees` | branch_admin | BranchEmployeeController@index |
 | POST | `/api/branch/employees` | branch_admin | BranchEmployeeController@store |
 | GET | `/api/branch/employees/{slug}` | branch_admin | BranchEmployeeController@show |
 | PUT | `/api/branch/employees/{slug}` | branch_admin | BranchEmployeeController@update |
 | DELETE | `/api/branch/employees/{slug}` | branch_admin | BranchEmployeeController@destroy |
+| GET | `/api/dept/employees` | dept_admin | DeptEmployeeController@index |
+| POST | `/api/dept/employees` | dept_admin | DeptEmployeeController@store |
+| GET | `/api/dept/employees/{slug}` | dept_admin | DeptEmployeeController@show |
+| PUT | `/api/dept/employees/{slug}` | dept_admin | DeptEmployeeController@update |
+| DELETE | `/api/dept/employees/{slug}` | dept_admin | DeptEmployeeController@destroy |
 | GET | `/api/admin/profile` | admin | AdminAuthController@profile |
 | PUT | `/api/admin/profile` | admin | AdminAuthController@updateProfile |
 | GET | `/api/admins` | admin | AdminController@index |
@@ -1709,6 +1849,8 @@ app/
 │   ├── AdminCompanyController.php    # Admin company CRUD
 │   ├── BranchAdminAuthController.php # Branch Admin login/logout
 │   ├── BranchEmployeeController.php  # Branch Employee CRUD
+│   ├── DeptAdminAuthController.php   # Dept Admin login/logout
+│   ├── DeptEmployeeController.php    # Dept Employee CRUD
 │   ├── BranchController.php          # Branch CRUD
 │   ├── BranchUserController.php      # Branch user CRUD + change-password
 │   ├── CompanyAuthController.php     # Company register/login/profile

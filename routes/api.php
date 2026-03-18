@@ -14,6 +14,8 @@ use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\SystemSettingController;
 use App\Http\Controllers\Api\BranchAdminAuthController;
 use App\Http\Controllers\Api\BranchEmployeeController;
+use App\Http\Controllers\Api\DeptAdminAuthController;
+use App\Http\Controllers\Api\DeptEmployeeController;
 use Illuminate\Support\Facades\Route;
 
 /* |-------------------------------------------------------------------------- | Admin Management & Company API Routes |-------------------------------------------------------------------------- */
@@ -169,3 +171,18 @@ Route::middleware(['auth:sanctum,branch_admin', 'branch_admin'])->group(function
     Route::put('/branch/employees/{slug}', [BranchEmployeeController::class, 'update']);
     Route::delete('/branch/employees/{slug}', [BranchEmployeeController::class, 'destroy']);
 });
+
+Route::post('/dept-admin/login', [DeptAdminAuthController::class, 'login']);
+
+Route::middleware(['auth:sanctum,dept_admin', 'dept_admin'])->group(function () {
+
+    Route::post('/dept-admin/logout', [DeptAdminAuthController::class, 'logout']);
+
+    // Dept Employees
+    Route::post('/dept/employees', [DeptEmployeeController::class, 'store']);
+    Route::get('/dept/employees', [DeptEmployeeController::class, 'index']);
+    Route::get('/dept/employees/{slug}', [DeptEmployeeController::class, 'show']);
+    Route::put('/dept/employees/{slug}', [DeptEmployeeController::class, 'update']);
+    Route::delete('/dept/employees/{slug}', [DeptEmployeeController::class, 'destroy']);
+});
+
