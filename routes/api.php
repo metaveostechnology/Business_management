@@ -186,3 +186,10 @@ Route::middleware(['auth:sanctum,dept_admin', 'dept_admin'])->group(function () 
     Route::delete('/dept/employees/{slug}', [DeptEmployeeController::class, 'destroy']);
 });
 
+// Dept Employees (Self API)
+Route::post('/dept-employee/login', [\App\Http\Controllers\Api\DeptEmployeeAuthController::class, 'login']);
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/dept-employee/logout', [DeptEmployeeController::class, 'logout']);
+    Route::post('/dept-employee/change-password', [DeptEmployeeController::class, 'changePassword']);
+});

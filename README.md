@@ -1724,6 +1724,71 @@ Sets `is_delete = 1` and `is_active = 0`.
 
 ---
 
+### 75b. Dept Employee Login
+
+**`POST /api/dept-employee/login`**
+
+```json
+// Request
+{
+    "email": "employee@abc.com",
+    "password": "secret123"
+}
+```
+
+```json
+// 200 Success
+{
+  "status": true,
+  "message": "Login successful",
+  "token": "5|token123",
+  "user": { ... }
+}
+```
+
+---
+
+### 76. Dept Employee Logout
+
+**`POST /api/dept-employee/logout`**
+
+> Requires `auth:sanctum` middleware.
+
+```json
+// 200 Success
+{
+    "status": true,
+    "message": "Logout successful"
+}
+```
+
+---
+
+### 77. Change Dept Employee Password
+
+**`POST /api/dept-employee/change-password`**
+
+> Requires `auth:sanctum` middleware.
+
+```json
+// Request
+{
+    "current_password": "old_password",
+    "new_password": "new_secure_pass",
+    "new_password_confirmation": "new_secure_pass"
+}
+```
+
+```json
+// 200 Success
+{
+    "status": true,
+    "message": "Password changed successfully"
+}
+```
+
+---
+
 ## 📋 Route Summary Table
 
 | Method | URI | Guard | Controller |
@@ -1733,6 +1798,7 @@ Sets `is_delete = 1` and `is_active = 0`.
 | POST | `/api/company/login` | Public | CompanyAuthController@login |
 | POST | `/api/branch-admin/login` | Public | BranchAdminAuthController@login |
 | POST | `/api/dept-admin/login` | Public | DeptAdminAuthController@login |
+| POST | `/api/dept-employee/login` | Public | DeptEmployeeAuthController@login |
 | POST | `/api/admin/logout` | admin | AdminAuthController@logout |
 | POST | `/api/branch-admin/logout` | branch_admin | BranchAdminAuthController@logout |
 | POST | `/api/dept-admin/logout` | dept_admin | DeptAdminAuthController@logout |
@@ -1746,6 +1812,8 @@ Sets `is_delete = 1` and `is_active = 0`.
 | GET | `/api/dept/employees/{slug}` | dept_admin | DeptEmployeeController@show |
 | PUT | `/api/dept/employees/{slug}` | dept_admin | DeptEmployeeController@update |
 | DELETE | `/api/dept/employees/{slug}` | dept_admin | DeptEmployeeController@destroy |
+| POST | `/api/dept-employee/logout` | sanctum | DeptEmployeeController@logout |
+| POST | `/api/dept-employee/change-password` | sanctum | DeptEmployeeController@changePassword |
 | GET | `/api/admin/profile` | admin | AdminAuthController@profile |
 | PUT | `/api/admin/profile` | admin | AdminAuthController@updateProfile |
 | GET | `/api/admins` | admin | AdminController@index |
