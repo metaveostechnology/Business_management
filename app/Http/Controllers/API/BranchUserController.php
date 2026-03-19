@@ -72,13 +72,28 @@ class BranchUserController extends Controller
             // Note: Departments are now global, so we don't need to check company_id for dept_id.
             // Validation is already handled by StoreBranchUserRequest.
 
-            // Generate Employee ID
-            $prefix = strtoupper(substr($company->name, 0, 3));
+            // Generate Employee ID: [CompanyCode]-[Sequence]
+            $prefix = $company->code ?: strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $company->name), 0, 3));
+            if (strlen($prefix) < 3) {
+                $prefix = strtoupper(str_pad($prefix, 3, 'X'));
+            }
+
             $lastUser = \App\Models\BranchUser::where('company_id', $companyId)
+                        ->whereNotNull('emp_id')
                         ->orderBy('id', 'desc')
                         ->first();
             
-            $nextNumber = $lastUser ? (int)substr($lastUser->emp_id, 4) + 1 : 1;
+            $nextNumber = 1;
+            if ($lastUser && $lastUser->emp_id) {
+                $parts = explode('-', $lastUser->emp_id);
+                if (count($parts) >= 2) {
+                    $lastPart = end($parts);
+                    if (is_numeric($lastPart)) {
+                        $nextNumber = intval($lastPart) + 1;
+                    }
+                }
+            }
+
             $empId = $prefix . '-' . str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
 
             $data               = $request->validated();
@@ -93,8 +108,8 @@ class BranchUserController extends Controller
                 'Employee created successfully.'
             );
         } catch (Throwable $e) {
-            Log::error('BranchUser store error', ['error' => $e->getMessage()]);
-            return $this->errorResponse('An error occurred while creating the employee.', statusCode: 500);
+            Log::error('BranchUser store error', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return $this->errorResponse('An error occurred while creating the employee: ' . $e->getMessage(), statusCode: 500);
         }
     }
 

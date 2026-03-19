@@ -18,13 +18,13 @@ class BranchEmployeeController extends Controller
      */
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $admin = auth()->user();
 
-        $employees = BranchUser::where('company_id', $user->company_id)
-            ->where('branch_id', $user->branch_id)
+        $employees = BranchUser::where('company_id', $admin->company_id)
+            ->where('branch_id', $admin->branch_id)
             ->where('is_delete', 0)
             ->where('is_branch_admin', 0)
-            ->where('id', '!=', $user->id)
+            ->orderBy('id', 'desc')
             ->get();
 
         return response()->json([
@@ -67,25 +67,25 @@ class BranchEmployeeController extends Controller
             ], 404);
         }
 
-        // Generate emp_id
-        $prefix = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $company->name), 0, 3));
+        // Generate emp_id: [CompanyCode]-[Sequence]
+        $prefix = $company->code ?: strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $company->name), 0, 3));
         if (strlen($prefix) < 3) {
-            $prefix = strtoupper(str_pad(substr($company->name, 0, 3), 3, 'X'));
+            $prefix = strtoupper(str_pad($prefix, 3, 'X'));
         }
 
         $lastEmployee = BranchUser::where('company_id', $admin->company_id)
+            ->whereNotNull('emp_id')
             ->orderBy('id', 'desc')
             ->first();
 
         $nextNumber = 1;
         if ($lastEmployee && $lastEmployee->emp_id) {
             $parts = explode('-', $lastEmployee->emp_id);
-            if (count($parts) == 2 && is_numeric($parts[1])) {
-                $nextNumber = intval($parts[1]) + 1;
-            } else {
-                // fallback if last emp_id format was different
-                $lastNum = intval(preg_replace('/[^0-9]/', '', $lastEmployee->emp_id));
-                $nextNumber = $lastNum > 0 ? $lastNum + 1 : 1;
+            if (count($parts) >= 2) {
+                $lastPart = end($parts);
+                if (is_numeric($lastPart)) {
+                    $nextNumber = intval($lastPart) + 1;
+                }
             }
         }
 
@@ -95,6 +95,15 @@ class BranchEmployeeController extends Controller
         $profileImagePath = null;
         if ($request->hasFile('profile_image')) {
             $profileImagePath = $request->file('profile_image')->store('profile_images', 'public');
+            
+            // Double Storage: Copy to public/storage
+            $source = storage_path('app/public/' . $profileImagePath);
+            $destination = public_path('storage/' . $profileImagePath);
+            $destDir = dirname($destination);
+            if (!is_dir($destDir)) {
+                mkdir($destDir, 0755, true);
+            }
+            copy($source, $destination);
         }
 
         $employee = BranchUser::create([
@@ -170,9 +179,9 @@ class BranchEmployeeController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|max:191',
+            'name' => 'sometimes|string|max:191',
             'phone' => 'nullable|string|max:20',
-            'dept_id' => 'sometimes|required|exists:departments,id',
+            'dept_id' => 'sometimes|exists:departments,id',
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
             'is_active' => 'sometimes|boolean'
         ]);
@@ -186,11 +195,27 @@ class BranchEmployeeController extends Controller
         }
 
         if ($request->hasFile('profile_image')) {
-            // Delete old image if exists
+            // Delete old image if exists (from both locations)
             if ($employee->profile_image) {
-                Storage::disk('public')->delete($employee->profile_image);
+                if (Storage::disk('public')->exists($employee->profile_image)) {
+                    Storage::disk('public')->delete($employee->profile_image);
+                }
+                $publicFilePath = public_path('storage/' . $employee->profile_image);
+                if (file_exists($publicFilePath)) {
+                    unlink($publicFilePath);
+                }
             }
-            $employee->profile_image = $request->file('profile_image')->store('profile_images', 'public');
+            $path = $request->file('profile_image')->store('profile_images', 'public');
+            $employee->profile_image = $path;
+
+            // Double Storage: Copy to public/storage
+            $source = storage_path('app/public/' . $path);
+            $destination = public_path('storage/' . $path);
+            $destDir = dirname($destination);
+            if (!is_dir($destDir)) {
+                mkdir($destDir, 0755, true);
+            }
+            copy($source, $destination);
         }
 
         if ($request->has('name')) {
@@ -259,17 +284,17 @@ class BranchEmployeeController extends Controller
         $originalSlug = $slug;
         $count = 2;
 
-        $query = BranchUser::where('slug', $slug);
-        if ($ignoreId) {
-            $query->where('id', '!=', $ignoreId);
-        }
-
-        while ($query->exists()) {
-            $slug = $originalSlug . '-' . $count;
+        while (true) {
             $query = BranchUser::where('slug', $slug);
             if ($ignoreId) {
                 $query->where('id', '!=', $ignoreId);
             }
+            
+            if (!$query->exists()) {
+                break;
+            }
+
+            $slug = $originalSlug . '-' . $count;
             $count++;
         }
 

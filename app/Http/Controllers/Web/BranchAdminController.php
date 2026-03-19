@@ -22,4 +22,11 @@ class BranchAdminController extends Controller
     {
         return view('branch.dashboard');
     }
+    /**
+     * Show the branch employees management page.
+     */
+    public function employees()
+    {
+        return view('branch.employees.index');
+    }
 }
