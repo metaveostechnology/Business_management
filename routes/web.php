@@ -55,4 +55,15 @@ Route::name('branch.')->prefix('branch')->group(function () {
     
     // Protected routes (handled on client side via JS checking localStorage auth tokens)
     Route::get('/dashboard', [App\Http\Controllers\Web\BranchAdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/employees', [App\Http\Controllers\Web\BranchAdminController::class, 'employees'])->name('employees');
+});
+
+// Department Admin Routes
+Route::name('department.')->prefix('department')->group(function () {
+    // Public routes
+    Route::get('/login', [App\Http\Controllers\Web\DeptAdminController::class, 'login'])->name('login');
+    
+    // Protected routes (handled on client side via JS checking localStorage auth tokens)
+    Route::get('/dashboard', [App\Http\Controllers\Web\DeptAdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/employees', [App\Http\Controllers\Web\DeptAdminController::class, 'employees'])->name('employees');
 });

@@ -164,11 +164,15 @@ Route::middleware(['auth:sanctum,branch_admin', 'branch_admin'])->group(function
 
     Route::post('/branch-admin/logout', [BranchAdminAuthController::class, 'logout']);
 
+    // Departments
+    Route::get('/departments', [DepartmentController::class, 'index']);
+
     // Branch Employees
     Route::post('/branch/employees', [BranchEmployeeController::class, 'store']);
     Route::get('/branch/employees', [BranchEmployeeController::class, 'index']);
     Route::get('/branch/employees/{slug}', [BranchEmployeeController::class, 'show']);
     Route::put('/branch/employees/{slug}', [BranchEmployeeController::class, 'update']);
+    Route::post('/branch/employees/{slug}', [BranchEmployeeController::class, 'update']); // For multipart/form-data support
     Route::delete('/branch/employees/{slug}', [BranchEmployeeController::class, 'destroy']);
 });
 
