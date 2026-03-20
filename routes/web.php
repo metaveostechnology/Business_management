@@ -67,3 +67,13 @@ Route::name('department.')->prefix('department')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\Web\DeptAdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/employees', [App\Http\Controllers\Web\DeptAdminController::class, 'employees'])->name('employees');
 });
+
+// Department Employee Routes
+Route::name('employee.')->prefix('employee')->group(function () {
+    // Public routes
+    Route::get('/login', [App\Http\Controllers\Web\DeptEmployeeDashboardController::class, 'login'])->name('login');
+    
+    // Protected routes
+    Route::get('/dashboard/{slug}', [App\Http\Controllers\Web\DeptEmployeeDashboardController::class, 'dashboard'])->name('dashboard');
+});
+

@@ -68,7 +68,7 @@ class DeptEmployeeController extends Controller
         }
 
         // Generate emp_id: [CompanyCode]-[Sequence]
-        $prefix = $company->code ?: strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $company->name), 0, 3));
+        $prefix = trim($company->code) ?: strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $company->name), 0, 3));
         if (strlen($prefix) < 3) {
             $prefix = strtoupper(str_pad($prefix, 3, 'X'));
         }
@@ -108,29 +108,41 @@ class DeptEmployeeController extends Controller
             }
         }
 
-        $employee = BranchUser::create([
-            'company_id' => $admin->company_id,
-            'branch_id' => $admin->branch_id,
-            'dept_id' => $admin->dept_id,
-            'emp_id' => $empId,
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'phone' => $request->phone,
-            'profile_image' => $profileImagePath,
-            'slug' => $this->generateUniqueSlug($request->name),
-            'is_branch_admin' => 0,
-            'is_dept_admin' => 0,
-            'is_active' => 1,
-            'is_delete' => 0,
-            'created_by' => $admin->id
-        ]);
+        try {
+            $employee = BranchUser::create([
+                'company_id' => $admin->company_id,
+                'branch_id' => $admin->branch_id,
+                'dept_id' => $admin->dept_id,
+                'emp_id' => $empId,
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'phone' => $request->phone,
+                'profile_image' => $profileImagePath,
+                'slug' => $this->generateUniqueSlug($request->name),
+                'is_branch_admin' => 0,
+                'is_dept_admin' => 0,
+                'is_active' => 1,
+                'is_delete' => 0,
+                'created_by' => $admin->id
+            ]);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Employee created successfully',
-            'data' => $employee
-        ], 201);
+            return response()->json([
+                'status' => true,
+                'message' => 'Employee created successfully',
+                'data' => $employee
+            ], 201);
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->errorInfo[1] == 1062) { // Duplicate entry
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Employee ID collision or Email already exists. Please try again.',
+                    'debug_error' => $e->getMessage()
+                ], 422);
+            }
+            throw $e;
+        }
+
     }
 
     /**
