@@ -7,6 +7,7 @@ use App\Models\BranchUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class DeptEmployeeAuthController extends Controller
 {
@@ -53,6 +54,93 @@ class DeptEmployeeAuthController extends Controller
             'message' => 'Login successful',
             'token' => $token,
             'user' => $user
+        ]);
+    }
+
+    /**
+     * Logout a department employee.
+     */
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+
+        if (
+            !$user ||
+            $user->is_dept_admin != 0 ||
+            $user->is_branch_admin != 0 ||
+            !$user->dept_id ||
+            $user->dept_id <= 0 ||
+            $user->is_active != 1 ||
+            $user->is_delete != 0
+        ) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized'
+            ], 403);
+        }
+
+        // Safe logout
+        $user->currentAccessToken()->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Logout successful'
+        ]);
+    }
+
+    /**
+     * Change password for a department employee.
+     */
+    public function changePassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation error',
+                'data' => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+
+        if (
+            !$user ||
+            $user->is_dept_admin != 0 ||
+            $user->is_branch_admin != 0 ||
+            !$user->dept_id ||
+            $user->dept_id <= 0 ||
+            $user->is_active != 1 ||
+            $user->is_delete != 0
+        ) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized'
+            ], 403);
+        }
+
+        // Verify current password
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Current password is incorrect'
+            ], 400);
+        }
+
+        // Update password
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        // Logout from all devices after password change
+        $user->tokens()->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Password changed successfully'
         ]);
     }
 }
