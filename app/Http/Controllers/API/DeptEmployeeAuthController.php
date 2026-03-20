@@ -31,8 +31,7 @@ class DeptEmployeeAuthController extends Controller
 
         $user = BranchUser::with(['company', 'branch', 'department'])
             ->where('email', $request->email)
-            ->where('is_dept_admin', 0)
-            ->where('is_branch_admin', 0)
+            
             ->whereNotNull('dept_id')
             ->where('dept_id', '>', 0)
             ->where('is_active', 1)
@@ -66,8 +65,7 @@ class DeptEmployeeAuthController extends Controller
 
         if (
             !$user ||
-            $user->is_dept_admin != 0 ||
-            $user->is_branch_admin != 0 ||
+            
             !$user->dept_id ||
             $user->dept_id <= 0 ||
             $user->is_active != 1 ||
@@ -110,8 +108,7 @@ class DeptEmployeeAuthController extends Controller
 
         if (
             !$user ||
-            $user->is_dept_admin != 0 ||
-            $user->is_branch_admin != 0 ||
+            
             !$user->dept_id ||
             $user->dept_id <= 0 ||
             $user->is_active != 1 ||
