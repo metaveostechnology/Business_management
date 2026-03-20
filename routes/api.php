@@ -15,6 +15,7 @@ use App\Http\Controllers\API\SystemSettingController;
 use App\Http\Controllers\Api\BranchAdminAuthController;
 use App\Http\Controllers\Api\BranchEmployeeController;
 use App\Http\Controllers\Api\DeptAdminAuthController;
+use App\Http\Controllers\Api\DeptEmployeeAuthController;
 use App\Http\Controllers\Api\DeptEmployeeController;
 use Illuminate\Support\Facades\Route;
 
@@ -191,9 +192,9 @@ Route::middleware(['auth:sanctum,dept_admin', 'dept_admin'])->group(function () 
 });
 
 // Dept Employees (Self API)
-Route::post('/dept-employee/login', [\App\Http\Controllers\Api\DeptEmployeeAuthController::class, 'login']);
+Route::post('/dept-employee/login', [DeptEmployeeAuthController::class, 'login']);
 
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post('/dept-employee/logout', [DeptEmployeeController::class, 'logout']);
-    Route::post('/dept-employee/change-password', [DeptEmployeeController::class, 'changePassword']);
+Route::middleware(['auth:sanctum,dept_admin'])->group(function () {
+    Route::post('/dept-employee/logout', [DeptEmployeeAuthController::class, 'logout']);
+    Route::post('/dept-employee/change-password', [DeptEmployeeAuthController::class, 'changePassword']);
 });
