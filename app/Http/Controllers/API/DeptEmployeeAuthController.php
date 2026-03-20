@@ -34,17 +34,33 @@ class DeptEmployeeAuthController extends Controller
             ->where('is_branch_admin', 0)
             ->whereNotNull('dept_id')
             ->where('dept_id', '>', 0)
-            ->where('is_active', 1)
             ->where('is_delete', 0)
             ->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid credentials or you are a Department/Branch Admin. Please use the appropriate admin login page.',
+                'data' => (object)[]
+            ], 401);
+        }
+
+        if (!$user->is_active) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your account is inactive. Please contact your Department Admin.',
+                'data' => (object)[]
+            ], 401);
+        }
+
+        if (!Hash::check($request->password, $user->password)) {
             return response()->json([
                 'status' => false,
                 'message' => 'Invalid credentials',
                 'data' => (object)[]
             ], 401);
         }
+
 
         $token = $user->createToken('dept_employee')->plainTextToken;
 
