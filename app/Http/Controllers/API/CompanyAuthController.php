@@ -76,9 +76,9 @@ class CompanyAuthController extends Controller
     {
         try {
             $company = Company::where('email', $request->email)
-                              ->where('is_active', true)
-                              ->where('is_delete', false)
-                              ->first();
+                ->where('is_active', true)
+                ->where('is_delete', false)
+                ->first();
 
             if (!$company || !Hash::check($request->password, $company->password)) {
                 return $this->errorResponse(
@@ -88,7 +88,7 @@ class CompanyAuthController extends Controller
             }
 
             // Revoke old tokens and issue a fresh one
-            $company->tokens()->delete();
+            // $company->tokens()->delete();
             $token = $company->createToken('company-token')->plainTextToken;
 
             return $this->successResponse([
@@ -166,7 +166,7 @@ class CompanyAuthController extends Controller
                         unlink($publicFilePath);
                     }
                 }
-                
+
                 $path = $request->file('logo')->store('companylogo', 'public');
                 $data['logo_path'] = $path;
 
@@ -237,8 +237,8 @@ class CompanyAuthController extends Controller
 
         while (
             Company::where('slug', $slug)
-                   ->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))
-                   ->exists()
+            ->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))
+            ->exists()
         ) {
             $slug = "{$base}-{$counter}";
             $counter++;
