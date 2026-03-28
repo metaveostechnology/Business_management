@@ -101,4 +101,12 @@ class BranchUser extends Authenticatable
     {
         return $this->hasMany(Attendance::class, 'branch_user_id');
     }
+
+    /**
+     * A branch user has many leave applications.
+     */
+    public function leaves(): HasMany
+    {
+        return $this->hasMany(Leave::class, 'branch_user_id');
+    }
 }
