@@ -69,11 +69,27 @@ class BranchAdminAuthController extends Controller
      */
     public function logout(Request $request)
     {
-        auth()->user()->currentAccessToken()->delete();
+        $request->user()->currentAccessToken()->delete();
 
         return response()->json([
             'status' => true,
             'message' => 'Logout successful'
+        ]);
+    }
+
+    /**
+     * Get the authenticated branch admin's own profile.
+     * Returns the user with company, branch, and department relations.
+     */
+    public function profile(Request $request)
+    {
+        $user = $request->user()
+            ->load(['company', 'branch', 'department']);
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Profile fetched successfully',
+            'data'    => $user,
         ]);
     }
 }

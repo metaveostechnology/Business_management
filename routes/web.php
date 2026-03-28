@@ -76,3 +76,10 @@ Route::name('employee.')->prefix('employee')->group(function () {
     Route::get('/dashboard/{slug}', [App\Http\Controllers\Web\DeptEmployeeDashboardController::class, 'dashboard'])->name('dashboard');
 });
 
+// Employee Self-Service Dashboard Routes
+Route::name('employee_self.')->prefix('employee-self')->group(function () {
+    // Public routes
+    Route::get('/login', [App\Http\Controllers\Web\EmployeeSelfDashboardController::class, 'login'])->name('login');
+    // Protected routes (handled on client side checking localStorage token)
+    Route::get('/dashboard', [App\Http\Controllers\Web\EmployeeSelfDashboardController::class, 'dashboard'])->name('dashboard');
+});

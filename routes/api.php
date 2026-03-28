@@ -17,6 +17,8 @@ use App\Http\Controllers\Api\BranchEmployeeController;
 use App\Http\Controllers\Api\DeptAdminAuthController;
 use App\Http\Controllers\Api\DeptEmployeeAuthController;
 use App\Http\Controllers\Api\DeptEmployeeController;
+use App\Http\Controllers\Api\EmployeeAttendanceController;
+use App\Http\Controllers\Api\EmployeeAuthController;
 use Illuminate\Support\Facades\Route;
 
 /* |-------------------------------------------------------------------------- | Admin Management & Company API Routes |-------------------------------------------------------------------------- */
@@ -167,6 +169,7 @@ Route::post('/branch-admin/login', [BranchAdminAuthController::class, 'login']);
 Route::middleware(['auth:sanctum,branch_admin', 'branch_admin'])->group(function () {
 
     Route::post('/branch-admin/logout', [BranchAdminAuthController::class, 'logout']);
+    Route::get('/branch-admin/profile', [BranchAdminAuthController::class, 'profile']);
 
     // Departments
     Route::get('/departments', [DepartmentController::class, 'index']);
@@ -185,6 +188,7 @@ Route::post('/dept-admin/login', [DeptAdminAuthController::class, 'login']);
 Route::middleware(['auth:sanctum,dept_admin', 'dept_admin'])->group(function () {
 
     Route::post('/dept-admin/logout', [DeptAdminAuthController::class, 'logout']);
+    Route::get('/dept-admin/profile', [DeptAdminAuthController::class, 'profile']);
 
     // Dept Employees
     Route::post('/dept/employees', [DeptEmployeeController::class, 'store']);
@@ -199,5 +203,31 @@ Route::post('/dept-employee/login', [DeptEmployeeAuthController::class, 'login']
 
 Route::middleware(['auth:sanctum,dept_admin'])->group(function () {
     Route::post('/dept-employee/logout', [DeptEmployeeAuthController::class, 'logout']);
+    Route::get('/dept-employee/profile', [DeptEmployeeAuthController::class, 'profile']);
     Route::post('/dept-employee/change-password', [DeptEmployeeAuthController::class, 'changePassword']);
+});
+
+/* |-------------------------------------------------------------------------- | Employee (branch_user) Auth & Attendance API Routes |-------------------------------------------------------------------------- */
+
+// ── Public: Employee login ────────────────────────────────────────────────────
+Route::post('/employee/login', [EmployeeAuthController::class, 'login'])
+    ->name('employee.login');
+
+// ── Protected: Employee – logout + self-service attendance ───────────────────
+Route::middleware(['auth:sanctum,branch_user'])->group(function () {
+
+    // Logout — closes attendance session and revokes token
+    Route::post('/employee/logout', [EmployeeAuthController::class, 'logout'])
+        ->name('employee.logout');
+
+    // Own profile (with company, branch, department)
+    Route::get('/employee/profile', [EmployeeAuthController::class, 'profile'])
+        ->name('employee.profile');
+
+    // List own attendance history (supports ?from_date=&to_date= filters)
+    Route::get('/employee/attendance', [EmployeeAttendanceController::class, 'index'])
+        ->name('employee.attendance.index');
+
+    // Show a single attendance record
+
 });

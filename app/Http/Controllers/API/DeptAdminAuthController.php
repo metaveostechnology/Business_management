@@ -66,4 +66,20 @@ class DeptAdminAuthController extends Controller
             'data' => (object)[]
         ]);
     }
+
+    /**
+     * Get the authenticated dept admin's own profile.
+     * Returns the user with company, branch, and department relations.
+     */
+    public function profile(Request $request)
+    {
+        $user = $request->user()
+            ->load(['company', 'branch', 'department']);
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Profile fetched successfully',
+            'data'    => $user,
+        ]);
+    }
 }
