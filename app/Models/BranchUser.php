@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Sanctum\HasApiTokens;
 
 class BranchUser extends Authenticatable
@@ -91,5 +92,13 @@ class BranchUser extends Authenticatable
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'dept_id');
+    }
+
+    /**
+     * A branch user has many attendance records.
+     */
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class, 'branch_user_id');
     }
 }

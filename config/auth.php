@@ -63,6 +63,11 @@ return [
             'driver'   => 'sanctum',
             'provider' => 'branch_users',
         ],
+
+        'branch_user' => [
+            'driver'   => 'sanctum',
+            'provider' => 'branch_users',
+        ],
     ],
 
     /*
