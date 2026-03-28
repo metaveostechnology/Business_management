@@ -12,14 +12,14 @@ use App\Http\Controllers\API\DepartmentFeatureController;
 use App\Http\Controllers\API\FeatureController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\SystemSettingController;
-use App\Http\Controllers\Api\BranchAdminAuthController;
-use App\Http\Controllers\Api\BranchEmployeeController;
-use App\Http\Controllers\Api\DeptAdminAuthController;
-use App\Http\Controllers\Api\DeptEmployeeAuthController;
-use App\Http\Controllers\Api\DeptEmployeeController;
-use App\Http\Controllers\Api\EmployeeAttendanceController;
-use App\Http\Controllers\Api\EmployeeAuthController;
-use App\Http\Controllers\Api\LeaveController;
+use App\Http\Controllers\API\BranchAdminAuthController;
+use App\Http\Controllers\API\BranchEmployeeController;
+use App\Http\Controllers\API\DeptAdminAuthController;
+use App\Http\Controllers\API\DeptEmployeeAuthController;
+use App\Http\Controllers\API\DeptEmployeeController;
+use App\Http\Controllers\API\EmployeeAttendanceController;
+use App\Http\Controllers\API\EmployeeAuthController;
+use App\Http\Controllers\API\LeaveController;
 use Illuminate\Support\Facades\Route;
 
 /* |-------------------------------------------------------------------------- | Admin Management & Company API Routes |-------------------------------------------------------------------------- */
