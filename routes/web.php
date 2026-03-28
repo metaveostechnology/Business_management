@@ -72,7 +72,6 @@ Route::name('department.')->prefix('department')->group(function () {
 Route::name('employee.')->prefix('employee')->group(function () {
     // Public routes
     Route::get('/login', [App\Http\Controllers\Web\DeptEmployeeDashboardController::class, 'login'])->name('login');
-    
     // Protected routes
     Route::get('/dashboard/{slug}', [App\Http\Controllers\Web\DeptEmployeeDashboardController::class, 'dashboard'])->name('dashboard');
 });

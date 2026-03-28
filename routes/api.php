@@ -97,7 +97,7 @@ Route::middleware('auth:sanctum,company')->group(function () {
         Route::post('/change-password', [CompanyAuthController::class, 'changePassword'])->name('company.auth.change-password');
     });
 
-    // Company management routes (slug-based)
+    // Company management routes (slug-based)  
     Route::prefix('companies')->group(
         function () {
             Route::get('/', [CompanyController::class, 'index'])->name('companies.index');
@@ -127,7 +127,7 @@ Route::middleware('auth:sanctum,company')->group(function () {
 
             // Department read-only routes (global lookup)
 
-
+            
 
 
             // Department-Feature mapping routes (slug-based, company-scoped via department)

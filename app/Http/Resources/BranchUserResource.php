@@ -23,6 +23,9 @@ class BranchUserResource extends JsonResource
                 'name' => $this->department?->name,
                 'slug' => $this->department?->slug,
             ],
+            'profile_image' => $this->profile_image
+                ? asset('storage/' . $this->profile_image)
+                : null,
             'name'            => $this->name,
             'email'           => $this->email,
             'phone'           => $this->phone,
