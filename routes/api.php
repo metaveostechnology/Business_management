@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\DeptEmployeeAuthController;
 use App\Http\Controllers\Api\DeptEmployeeController;
 use App\Http\Controllers\Api\EmployeeAttendanceController;
 use App\Http\Controllers\Api\EmployeeAuthController;
+use App\Http\Controllers\Api\LeaveController;
 use Illuminate\Support\Facades\Route;
 
 /* |-------------------------------------------------------------------------- | Admin Management & Company API Routes |-------------------------------------------------------------------------- */
@@ -229,5 +230,13 @@ Route::middleware(['auth:sanctum,branch_user'])->group(function () {
         ->name('employee.attendance.index');
 
     // Show a single attendance record
+    Route::get('/employee/attendance/{id}', [EmployeeAttendanceController::class, 'show'])
+        ->name('employee.attendance.show');
 
+    // ── Leaves ───────────────────────────────────────────────────────────────
+    Route::post('/employee/leave/apply', [LeaveController::class, 'apply']);
+    Route::get('/employee/leaves', [LeaveController::class, 'index']);
+    Route::get('/employee/leaves/{id}', [LeaveController::class, 'show']);
+    Route::delete('/employee/leaves/{id}', [LeaveController::class, 'cancel']);
+    Route::get('/employee/leave-balance', [LeaveController::class, 'balance']);
 });

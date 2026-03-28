@@ -82,4 +82,6 @@ Route::name('employee_self.')->prefix('employee-self')->group(function () {
     Route::get('/login', [App\Http\Controllers\Web\EmployeeSelfDashboardController::class, 'login'])->name('login');
     // Protected routes (handled on client side checking localStorage token)
     Route::get('/dashboard', [App\Http\Controllers\Web\EmployeeSelfDashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/profile', [App\Http\Controllers\Web\EmployeeSelfDashboardController::class, 'profile'])->name('profile');
+    Route::get('/leaves', [App\Http\Controllers\Web\EmployeeSelfDashboardController::class, 'leaves'])->name('leaves');
 });

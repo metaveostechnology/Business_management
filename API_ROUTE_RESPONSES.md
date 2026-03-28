@@ -4324,3 +4324,475 @@
 }
 ```
 
+
+## Leave Routes
+
+- Generated at: `2026-03-28 08:57:21`
+- Employee login used for auth setup only.
+
+| # | Route | Status |
+| --- | --- | --- |
+| 1 | `POST /api/employee/leave/apply` | `201` |
+| 2 | `GET /api/employee/leaves` | `200` |
+| 3 | `GET /api/employee/leaves/{id}` | `200` |
+| 4 | `GET /api/employee/leave-balance` | `200` |
+| 5 | `DELETE /api/employee/leaves/{id}` | `200` |
+
+### Detailed Leave Responses
+
+#### 1. Apply leave
+
+- Route: `POST /api/employee/leave/apply`
+- Status: `201`
+
+**Request Payload**
+
+```json
+{
+    "leave_type": "casual",
+    "from_date": "2026-03-29",
+    "to_date": "2026-03-30",
+    "reason": "Route test leave request"
+}
+```
+
+**Response Body**
+
+```json
+{
+    "status": true,
+    "message": "Leave application submitted successfully",
+    "data": {
+        "company_id": 23,
+        "branch_id": 16,
+        "dept_id": 9,
+        "branch_user_id": 34,
+        "leave_type": "casual",
+        "from_date": "2026-03-29T00:00:00.000000Z",
+        "to_date": "2026-03-30T00:00:00.000000Z",
+        "total_days": 2,
+        "reason": "Route test leave request",
+        "status": "pending",
+        "updated_at": "2026-03-28T08:57:21.000000Z",
+        "created_at": "2026-03-28T08:57:21.000000Z",
+        "id": 2,
+        "employee": {
+            "id": 34,
+            "company_id": 23,
+            "emp_id": "LEV-30029636",
+            "branch_id": 16,
+            "dept_id": 9,
+            "name": "Leave Employee",
+            "email": "leave-employee-mb5woy@example.com",
+            "phone": "9777777777",
+            "profile_image": null,
+            "is_dept_admin": false,
+            "is_branch_admin": false,
+            "slug": "leave-20260328-085720-employee-re3vil",
+            "is_active": true,
+            "is_delete": false,
+            "created_by": 23,
+            "created_at": "2026-03-28T08:57:21.000000Z",
+            "updated_at": "2026-03-28T08:57:21.000000Z"
+        },
+        "company": {
+            "id": 23,
+            "slug": "leave-20260328-085720-company-g6ogpo",
+            "code": "CMPUEQGD7",
+            "name": "Leave Company RHBR",
+            "legal_name": null,
+            "email": "leave-company-vhc6vj@example.com",
+            "phone": "9555555555",
+            "website": null,
+            "tax_number": null,
+            "registration_number": null,
+            "currency_code": "INR",
+            "timezone": "Asia/Calcutta",
+            "address_line1": null,
+            "address_line2": null,
+            "city": null,
+            "state": null,
+            "country": null,
+            "postal_code": null,
+            "address": null,
+            "logo_path": null,
+            "is_active": true,
+            "is_delete": false,
+            "created_at": "2026-03-28T08:57:21.000000Z",
+            "updated_at": "2026-03-28T08:57:21.000000Z"
+        },
+        "branch": {
+            "id": 16,
+            "company_id": 23,
+            "code": "BRUCXDIO",
+            "name": "Leave Branch MTKG",
+            "slug": "leave-20260328-085720-branch-cy2w8e",
+            "email": "leave-branch-2kr4mj@example.com",
+            "phone": "9666666666",
+            "manager_user_id": null,
+            "address_line1": "Leave branch address",
+            "address_line2": null,
+            "city": "Kolkata",
+            "state": "West Bengal",
+            "country": "India",
+            "postal_code": "700001",
+            "google_map_link": null,
+            "is_head_office": true,
+            "is_active": true,
+            "created_at": "2026-03-28T08:57:21.000000Z",
+            "updated_at": "2026-03-28T08:57:21.000000Z"
+        },
+        "department": {
+            "id": 9,
+            "slug": "leave-20260328-085720-department-tuqyik",
+            "parent_department_id": null,
+            "reports_to_department_id": null,
+            "code": "DPTUPNX12",
+            "name": "Leave Department 8AQL",
+            "description": "Department for leave route testing",
+            "head_user_id": null,
+            "level_no": 1,
+            "approval_mode": "hierarchical",
+            "escalation_mode": "full_chain",
+            "can_create_tasks": true,
+            "can_receive_tasks": true,
+            "is_system_default": false,
+            "is_active": true,
+            "created_by": null,
+            "created_at": "2026-03-28T08:57:21.000000Z",
+            "updated_at": "2026-03-28T08:57:21.000000Z"
+        },
+        "approver": null
+    }
+}
+```
+
+#### 2. List leaves
+
+- Route: `GET /api/employee/leaves`
+- Status: `200`
+
+**Request Payload**
+
+```json
+[]
+```
+
+**Response Body**
+
+```json
+{
+    "status": true,
+    "message": "Leave history fetched successfully",
+    "data": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 2,
+                "company_id": 23,
+                "branch_id": 16,
+                "dept_id": 9,
+                "branch_user_id": 34,
+                "leave_type": "casual",
+                "from_date": "2026-03-29T00:00:00.000000Z",
+                "to_date": "2026-03-30T00:00:00.000000Z",
+                "total_days": 2,
+                "reason": "Route test leave request",
+                "status": "pending",
+                "approved_by": null,
+                "approved_at": null,
+                "created_at": "2026-03-28T08:57:21.000000Z",
+                "updated_at": "2026-03-28T08:57:21.000000Z",
+                "employee": {
+                    "id": 34,
+                    "company_id": 23,
+                    "emp_id": "LEV-30029636",
+                    "branch_id": 16,
+                    "dept_id": 9,
+                    "name": "Leave Employee",
+                    "email": "leave-employee-mb5woy@example.com",
+                    "phone": "9777777777",
+                    "profile_image": null,
+                    "is_dept_admin": false,
+                    "is_branch_admin": false,
+                    "slug": "leave-20260328-085720-employee-re3vil",
+                    "is_active": true,
+                    "is_delete": false,
+                    "created_by": 23,
+                    "created_at": "2026-03-28T08:57:21.000000Z",
+                    "updated_at": "2026-03-28T08:57:21.000000Z"
+                },
+                "company": {
+                    "id": 23,
+                    "slug": "leave-20260328-085720-company-g6ogpo",
+                    "code": "CMPUEQGD7",
+                    "name": "Leave Company RHBR",
+                    "legal_name": null,
+                    "email": "leave-company-vhc6vj@example.com",
+                    "phone": "9555555555",
+                    "website": null,
+                    "tax_number": null,
+                    "registration_number": null,
+                    "currency_code": "INR",
+                    "timezone": "Asia/Calcutta",
+                    "address_line1": null,
+                    "address_line2": null,
+                    "city": null,
+                    "state": null,
+                    "country": null,
+                    "postal_code": null,
+                    "address": null,
+                    "logo_path": null,
+                    "is_active": true,
+                    "is_delete": false,
+                    "created_at": "2026-03-28T08:57:21.000000Z",
+                    "updated_at": "2026-03-28T08:57:21.000000Z"
+                },
+                "branch": {
+                    "id": 16,
+                    "company_id": 23,
+                    "code": "BRUCXDIO",
+                    "name": "Leave Branch MTKG",
+                    "slug": "leave-20260328-085720-branch-cy2w8e",
+                    "email": "leave-branch-2kr4mj@example.com",
+                    "phone": "9666666666",
+                    "manager_user_id": null,
+                    "address_line1": "Leave branch address",
+                    "address_line2": null,
+                    "city": "Kolkata",
+                    "state": "West Bengal",
+                    "country": "India",
+                    "postal_code": "700001",
+                    "google_map_link": null,
+                    "is_head_office": true,
+                    "is_active": true,
+                    "created_at": "2026-03-28T08:57:21.000000Z",
+                    "updated_at": "2026-03-28T08:57:21.000000Z"
+                },
+                "department": {
+                    "id": 9,
+                    "slug": "leave-20260328-085720-department-tuqyik",
+                    "parent_department_id": null,
+                    "reports_to_department_id": null,
+                    "code": "DPTUPNX12",
+                    "name": "Leave Department 8AQL",
+                    "description": "Department for leave route testing",
+                    "head_user_id": null,
+                    "level_no": 1,
+                    "approval_mode": "hierarchical",
+                    "escalation_mode": "full_chain",
+                    "can_create_tasks": true,
+                    "can_receive_tasks": true,
+                    "is_system_default": false,
+                    "is_active": true,
+                    "created_by": null,
+                    "created_at": "2026-03-28T08:57:21.000000Z",
+                    "updated_at": "2026-03-28T08:57:21.000000Z"
+                },
+                "approver": null
+            }
+        ],
+        "first_page_url": "http://localhost/api/employee/leaves?page=1",
+        "from": 1,
+        "last_page": 1,
+        "last_page_url": "http://localhost/api/employee/leaves?page=1",
+        "links": [
+            {
+                "url": null,
+                "label": "&laquo; Previous",
+                "active": false
+            },
+            {
+                "url": "http://localhost/api/employee/leaves?page=1",
+                "label": "1",
+                "active": true
+            },
+            {
+                "url": null,
+                "label": "Next &raquo;",
+                "active": false
+            }
+        ],
+        "next_page_url": null,
+        "path": "http://localhost/api/employee/leaves",
+        "per_page": 10,
+        "prev_page_url": null,
+        "to": 1,
+        "total": 1
+    }
+}
+```
+
+#### 3. Show leave
+
+- Route: `GET /api/employee/leaves/{id}`
+- Tested URI: `/api/employee/leaves/2`
+- Status: `200`
+
+**Request Payload**
+
+```json
+[]
+```
+
+**Response Body**
+
+```json
+{
+    "status": true,
+    "message": "Leave record fetched successfully",
+    "data": {
+        "id": 2,
+        "company_id": 23,
+        "branch_id": 16,
+        "dept_id": 9,
+        "branch_user_id": 34,
+        "leave_type": "casual",
+        "from_date": "2026-03-29T00:00:00.000000Z",
+        "to_date": "2026-03-30T00:00:00.000000Z",
+        "total_days": 2,
+        "reason": "Route test leave request",
+        "status": "pending",
+        "approved_by": null,
+        "approved_at": null,
+        "created_at": "2026-03-28T08:57:21.000000Z",
+        "updated_at": "2026-03-28T08:57:21.000000Z",
+        "employee": {
+            "id": 34,
+            "company_id": 23,
+            "emp_id": "LEV-30029636",
+            "branch_id": 16,
+            "dept_id": 9,
+            "name": "Leave Employee",
+            "email": "leave-employee-mb5woy@example.com",
+            "phone": "9777777777",
+            "profile_image": null,
+            "is_dept_admin": false,
+            "is_branch_admin": false,
+            "slug": "leave-20260328-085720-employee-re3vil",
+            "is_active": true,
+            "is_delete": false,
+            "created_by": 23,
+            "created_at": "2026-03-28T08:57:21.000000Z",
+            "updated_at": "2026-03-28T08:57:21.000000Z"
+        },
+        "company": {
+            "id": 23,
+            "slug": "leave-20260328-085720-company-g6ogpo",
+            "code": "CMPUEQGD7",
+            "name": "Leave Company RHBR",
+            "legal_name": null,
+            "email": "leave-company-vhc6vj@example.com",
+            "phone": "9555555555",
+            "website": null,
+            "tax_number": null,
+            "registration_number": null,
+            "currency_code": "INR",
+            "timezone": "Asia/Calcutta",
+            "address_line1": null,
+            "address_line2": null,
+            "city": null,
+            "state": null,
+            "country": null,
+            "postal_code": null,
+            "address": null,
+            "logo_path": null,
+            "is_active": true,
+            "is_delete": false,
+            "created_at": "2026-03-28T08:57:21.000000Z",
+            "updated_at": "2026-03-28T08:57:21.000000Z"
+        },
+        "branch": {
+            "id": 16,
+            "company_id": 23,
+            "code": "BRUCXDIO",
+            "name": "Leave Branch MTKG",
+            "slug": "leave-20260328-085720-branch-cy2w8e",
+            "email": "leave-branch-2kr4mj@example.com",
+            "phone": "9666666666",
+            "manager_user_id": null,
+            "address_line1": "Leave branch address",
+            "address_line2": null,
+            "city": "Kolkata",
+            "state": "West Bengal",
+            "country": "India",
+            "postal_code": "700001",
+            "google_map_link": null,
+            "is_head_office": true,
+            "is_active": true,
+            "created_at": "2026-03-28T08:57:21.000000Z",
+            "updated_at": "2026-03-28T08:57:21.000000Z"
+        },
+        "department": {
+            "id": 9,
+            "slug": "leave-20260328-085720-department-tuqyik",
+            "parent_department_id": null,
+            "reports_to_department_id": null,
+            "code": "DPTUPNX12",
+            "name": "Leave Department 8AQL",
+            "description": "Department for leave route testing",
+            "head_user_id": null,
+            "level_no": 1,
+            "approval_mode": "hierarchical",
+            "escalation_mode": "full_chain",
+            "can_create_tasks": true,
+            "can_receive_tasks": true,
+            "is_system_default": false,
+            "is_active": true,
+            "created_by": null,
+            "created_at": "2026-03-28T08:57:21.000000Z",
+            "updated_at": "2026-03-28T08:57:21.000000Z"
+        },
+        "approver": null
+    }
+}
+```
+
+#### 4. Leave balance
+
+- Route: `GET /api/employee/leave-balance`
+- Status: `200`
+
+**Request Payload**
+
+```json
+[]
+```
+
+**Response Body**
+
+```json
+{
+    "status": true,
+    "message": "Leave balance fetched successfully",
+    "data": {
+        "year": 2026,
+        "annual_allowance_days": 24,
+        "used_days": 0,
+        "pending_days": 2,
+        "remaining_days": 24
+    }
+}
+```
+
+#### 5. Cancel leave
+
+- Route: `DELETE /api/employee/leaves/{id}`
+- Tested URI: `/api/employee/leaves/2`
+- Status: `200`
+
+**Request Payload**
+
+```json
+[]
+```
+
+**Response Body**
+
+```json
+{
+    "status": true,
+    "message": "Leave application cancelled successfully"
+}
+```
+

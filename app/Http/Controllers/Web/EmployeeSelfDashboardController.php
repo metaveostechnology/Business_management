@@ -22,4 +22,20 @@ class EmployeeSelfDashboardController extends Controller
     {
         return view('employee_self.dashboard');
     }
+
+    /**
+     * Show the employee profile page.
+     */
+    public function profile()
+    {
+        return view('employee_self.profile');
+    }
+
+    /**
+     * Show the employee leave management page.
+     */
+    public function leaves()
+    {
+        return view('employee_self.leaves');
+    }
 }
