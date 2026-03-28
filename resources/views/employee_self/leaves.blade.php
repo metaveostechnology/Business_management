@@ -177,7 +177,12 @@
             } else {
                 data.data.forEach(item => {
                     const type = item.leave_type || 'General';
-                    const dates = `${item.start_date} to ${item.end_date}`;
+                    
+                    const dateOptions = { day: 'numeric', month: 'long', year: 'numeric' };
+                    const fromStr = new Date(item.from_date).toLocaleDateString('en-GB', dateOptions);
+                    const toStr = new Date(item.to_date).toLocaleDateString('en-GB', dateOptions);
+                    const dates = fromStr === toStr ? fromStr : `${fromStr} to ${toStr}`;
+                    
                     const reason = item.reason || '--';
                     
                     let statusBadge = '';
@@ -263,8 +268,8 @@
         alertBox.classList.add('hidden');
 
         const payload = {
-            start_date: document.getElementById('start_date').value,
-            end_date: document.getElementById('end_date').value,
+            from_date: document.getElementById('start_date').value,
+            to_date: document.getElementById('end_date').value,
             reason: document.getElementById('reason').value,
             leave_type: document.getElementById('leave_type').value
         };
